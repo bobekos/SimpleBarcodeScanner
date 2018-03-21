@@ -1,6 +1,9 @@
 package com.bobekos.bobek.scanner
 
 import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -33,6 +36,8 @@ class BarcodeView : SurfaceView {
     }
 
     private fun init() {
+        setWillNotDraw(true)
+
         holder.addCallback(object : SurfaceHolder.Callback {
             override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {
 
