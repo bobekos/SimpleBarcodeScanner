@@ -3,6 +3,7 @@ package com.bobekos.bobek.simplebarcodescanner
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
+import com.google.android.gms.vision.barcode.Barcode
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -13,6 +14,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         barcodeView
+                .setBarcodeFormats(Barcode.QR_CODE)
                 .drawOverlay()
                 .getObservable()
                 .observeOn(AndroidSchedulers.mainThread())

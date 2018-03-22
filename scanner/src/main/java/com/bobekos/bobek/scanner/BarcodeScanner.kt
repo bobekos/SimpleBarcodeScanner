@@ -24,17 +24,18 @@ internal class BarcodeScanner(
 
     private val barcodeDetector by lazy {
         BarcodeDetector.Builder(context)
+                .setBarcodeFormats(config.barcodeFormat)
                 .build()
     }
 
     @SuppressLint("MissingPermission")
-    fun getObservable(size: Size): Observable<Barcode> {
+    fun getObservable(): Observable<Barcode> {
         return Observable.fromPublisher<Barcode> {
             if (context == null) {
                 it.onError(NullPointerException("Context is null"))
             } else {
                 if (checkPermission()) {
-                    getCameraSource(size).start(holder)
+                    getCameraSource(config.previewSize, config.isAutoFocus).start(holder)
 
                     val tracker = BarcodeTracker(it)
                     val processor = MultiProcessor.Builder(BarcodeTrackerFactory(tracker)).build()
@@ -52,12 +53,15 @@ internal class BarcodeScanner(
         override fun onNewItem(id: Int, barcode: Barcode?) {
             if (barcode != null) {
                 subscriber.onNext(barcode)
-                BarcodeView.overlaySubject.onNext(barcode.boundingBox)
+
+                if (config.drawOverLay) {
+                    BarcodeView.overlaySubject.onNext(barcode.boundingBox)
+                }
             }
         }
 
         override fun onUpdate(detection: Detector.Detections<Barcode>?, barcode: Barcode?) {
-            if (barcode != null) {
+            if (barcode != null && config.drawOverLay) {
                 BarcodeView.overlaySubject.onNext(barcode.boundingBox)
             }
         }
@@ -67,16 +71,18 @@ internal class BarcodeScanner(
         }
 
         override fun onDone() {
-            BarcodeView.overlaySubject.onNext(Rect())
+            if (config.drawOverLay) {
+                BarcodeView.overlaySubject.onNext(Rect())
+            }
         }
     }
 
-    private fun getCameraSource(size: Size): CameraSource {
+    private fun getCameraSource(size: Size, isAutoFocus: Boolean): CameraSource {
         return CameraSource.Builder(context, barcodeDetector)
                 .setFacing(CameraSource.CAMERA_FACING_BACK)
                 .setRequestedPreviewSize(size.width, size.height)
                 .setRequestedFps(15.0f)
-                .setAutoFocusEnabled(true)
+                .setAutoFocusEnabled(isAutoFocus)
                 .build()
     }
 
