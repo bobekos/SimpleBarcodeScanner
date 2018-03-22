@@ -10,32 +10,31 @@ import android.widget.FrameLayout
 import com.google.android.gms.vision.barcode.Barcode
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 
 
 class BarcodeView : FrameLayout {
 
-    private var disposables: CompositeDisposable = CompositeDisposable()
-
-    private var isAutoFocus = true
+    private var overlayDisposable: Disposable? = null
 
     private var drawOverlay: BarcodeOverlay? = null
 
-    private var previewSize = Size(640, 480)
+    private val config by lazy {
+        BarcodeScannerConfig()
+    }
 
     companion object {
         val overlaySubject: PublishSubject<Rect> = PublishSubject.create<Rect>()
-        private val scannerSubject: PublishSubject<Barcode> = PublishSubject.create()
     }
 
     private val xScaleFactor by lazy {
-        width.toFloat().div(Math.min(previewSize.width, previewSize.height))
+        width.toFloat().div(Math.min(config.previewSize.width, config.previewSize.height))
     }
 
     private val yScaleFactor by lazy {
-        height.toFloat().div(Math.max(previewSize.width, previewSize.height))
+        height.toFloat().div(Math.max(config.previewSize.width, config.previewSize.height))
     }
 
     private val cameraView by lazy {
@@ -66,7 +65,8 @@ class BarcodeView : FrameLayout {
                 }
 
                 override fun surfaceDestroyed(p0: SurfaceHolder?) {
-                    disposables.clear()
+                    overlayDisposable?.dispose()
+                    it.onComplete()
                 }
 
                 override fun surfaceCreated(holder: SurfaceHolder?) {
@@ -78,24 +78,31 @@ class BarcodeView : FrameLayout {
                 }
             })
         }.flatMap {
-            BarcodeScanner(context, it).getObservable(previewSize)
+            BarcodeScanner(context, it, config).getObservable()
         }.subscribeOn(Schedulers.io())
     }
 
     fun setPreviewSize(width: Int, height: Int): BarcodeView {
-        previewSize = Size(width, height)
+        config.previewSize = Size(width, height)
 
         return this
     }
 
     fun setAutoFocus(enabled: Boolean): BarcodeView {
-        isAutoFocus = enabled
+        config.isAutoFocus = enabled
+
+        return this
+    }
+
+    fun setBarcodeFormats(vararg formats: Int): BarcodeView {
+        config.barcodeFormat = formats.sum()
 
         return this
     }
 
     fun drawOverlay(overlay: BarcodeOverlay? = BarcodeRectOverlay(context)): BarcodeView {
         drawOverlay = overlay
+        config.drawOverLay = true
 
         return this
     }
@@ -103,15 +110,13 @@ class BarcodeView : FrameLayout {
     private fun startOverlay() {
         addView(drawOverlay as View, FrameLayout.LayoutParams(width, height))
 
-        disposables.add(
-                overlaySubject
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe {
-                            if (drawOverlay != null) {
-                                drawOverlay?.onUpdate(calculateOverlayView(it))
-                            }
-                        }
-        )
+        overlayDisposable = overlaySubject
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+                    if (drawOverlay != null) {
+                        drawOverlay?.onUpdate(calculateOverlayView(it))
+                    }
+                }
     }
 
     private fun calculateOverlayView(barcodeRect: Rect): Rect {
