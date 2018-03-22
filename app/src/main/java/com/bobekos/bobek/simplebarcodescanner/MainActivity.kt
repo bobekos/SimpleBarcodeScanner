@@ -3,8 +3,6 @@ package com.bobekos.bobek.simplebarcodescanner
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
-import com.bobekos.bobek.scanner.BarcodeView
-import com.google.android.gms.vision.barcode.Barcode
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_main.*
 

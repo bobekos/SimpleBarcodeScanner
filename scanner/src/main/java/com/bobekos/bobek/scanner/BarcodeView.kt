@@ -9,7 +9,6 @@ import android.view.View
 import android.widget.FrameLayout
 import com.google.android.gms.vision.barcode.Barcode
 import io.reactivex.Observable
-import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -20,15 +19,11 @@ class BarcodeView : FrameLayout {
 
     private var disposables: CompositeDisposable = CompositeDisposable()
 
-    private var listener: BarcodeListener? = null
-
     private var isAutoFocus = true
 
     private var drawOverlay: BarcodeOverlay? = null
 
     private var previewSize = Size(640, 480)
-
-    private lateinit var observable: Observable<Barcode>
 
     companion object {
         val overlaySubject: PublishSubject<Rect> = PublishSubject.create<Rect>()
@@ -61,24 +56,30 @@ class BarcodeView : FrameLayout {
 
     private fun init() {
         addView(cameraView)
+    }
 
-        cameraView.holder.addCallback(object : SurfaceHolder.Callback {
-            override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {
+    fun getObservable(): Observable<Barcode> {
+        return Observable.fromPublisher<SurfaceHolder> {
+            cameraView.holder.addCallback(object : SurfaceHolder.Callback {
+                override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {
 
-            }
-
-            override fun surfaceDestroyed(p0: SurfaceHolder?) {
-                disposables.clear()
-            }
-
-            override fun surfaceCreated(p0: SurfaceHolder?) {
-                start()
-
-                if (drawOverlay != null) {
-                    startOverlay()
                 }
-            }
-        })
+
+                override fun surfaceDestroyed(p0: SurfaceHolder?) {
+                    disposables.clear()
+                }
+
+                override fun surfaceCreated(holder: SurfaceHolder?) {
+                    if (drawOverlay != null) {
+                        startOverlay()
+                    }
+
+                    it.onNext(holder)
+                }
+            })
+        }.flatMap {
+            BarcodeScanner(context, it).getObservable(previewSize)
+        }.subscribeOn(Schedulers.io())
     }
 
     fun setPreviewSize(width: Int, height: Int): BarcodeView {
@@ -99,10 +100,6 @@ class BarcodeView : FrameLayout {
         return this
     }
 
-    fun addBarcodeListener(l: BarcodeListener) {
-        listener = l
-    }
-
     private fun startOverlay() {
         addView(drawOverlay as View, FrameLayout.LayoutParams(width, height))
 
@@ -115,27 +112,6 @@ class BarcodeView : FrameLayout {
                             }
                         }
         )
-    }
-
-    private fun start() {
-        val scanner = BarcodeScanner(context, cameraView.holder)
-        observable = scanner.getObservable(previewSize)
-
-//        disposables.add(scanner.getObservable(previewSize)
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(
-//                        {
-//                            listener?.onBarcodeDetected(it)
-//                        },
-//                        {
-//                            listener?.onError(it)
-//                        }
-//                ))
-    }
-
-    fun getObservable(): Observable<Barcode> {
-        return scannerSubject.flatMap { observable }.subscribeOn(Schedulers.io())
     }
 
     private fun calculateOverlayView(barcodeRect: Rect): Rect {
@@ -155,15 +131,5 @@ class BarcodeView : FrameLayout {
 
     private fun translateY(y: Int): Int {
         return (y * yScaleFactor).toInt()
-    }
-
-    interface BarcodeListener {
-        fun onBarcodeDetected(barcode: Barcode) {
-
-        }
-
-        fun onError(throwable: Throwable) {
-
-        }
     }
 }

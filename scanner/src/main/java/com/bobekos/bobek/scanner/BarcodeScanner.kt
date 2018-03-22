@@ -14,7 +14,7 @@ import com.google.android.gms.vision.Tracker
 import com.google.android.gms.vision.barcode.Barcode
 import com.google.android.gms.vision.barcode.BarcodeDetector
 import io.reactivex.Observable
-import io.reactivex.ObservableEmitter
+import org.reactivestreams.Subscriber
 
 
 class BarcodeScanner(private val context: Context?, private val holder: SurfaceHolder) {
@@ -25,32 +25,29 @@ class BarcodeScanner(private val context: Context?, private val holder: SurfaceH
 
     @SuppressLint("MissingPermission")
     fun getObservable(size: Size): Observable<Barcode> {
-        return Observable.create<Barcode> { emitter ->
-
+        return Observable.fromPublisher<Barcode> {
             if (context == null) {
-                emitter.onError(NullPointerException("Context is null"))
+                it.onError(NullPointerException("Context is null"))
             } else {
                 if (checkPermission()) {
                     getCameraSource(size).start(holder)
+
+                    val tracker = BarcodeTracker(it)
+                    val processor = MultiProcessor.Builder(BarcodeTrackerFactory(tracker)).build()
+
+                    barcodeDetector.setProcessor(processor)
                 } else {
-                    emitter.onError(SecurityException("Permission Denial: Camera"))
+                    it.onError(SecurityException("Permission Denial: Camera"))
                 }
-
-                val tracker = BarcodeTracker(emitter)
-                val processor = MultiProcessor.Builder(BarcodeTrackerFactory(tracker)).build()
-
-                barcodeDetector.setProcessor(processor)
             }
         }
     }
 
-    inner class BarcodeTracker(private val emitter: ObservableEmitter<Barcode>) : Tracker<Barcode>() {
+    inner class BarcodeTracker(private val subscriber: Subscriber<in Barcode>) : Tracker<Barcode>() {
 
         override fun onNewItem(id: Int, barcode: Barcode?) {
             if (barcode != null) {
-                if (!emitter.isDisposed) {
-                    emitter.onNext(barcode)
-                }
+                subscriber.onNext(barcode)
                 BarcodeView.overlaySubject.onNext(barcode.boundingBox)
             }
         }
