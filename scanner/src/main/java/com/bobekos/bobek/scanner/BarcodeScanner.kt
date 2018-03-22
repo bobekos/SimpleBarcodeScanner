@@ -17,10 +17,14 @@ import io.reactivex.Observable
 import org.reactivestreams.Subscriber
 
 
-class BarcodeScanner(private val context: Context?, private val holder: SurfaceHolder) {
+internal class BarcodeScanner(
+        private val context: Context?,
+        private val holder: SurfaceHolder,
+        private val config: BarcodeScannerConfig) {
 
     private val barcodeDetector by lazy {
-        BarcodeDetector.Builder(context).build()
+        BarcodeDetector.Builder(context)
+                .build()
     }
 
     @SuppressLint("MissingPermission")

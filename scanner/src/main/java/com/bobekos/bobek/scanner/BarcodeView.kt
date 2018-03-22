@@ -78,7 +78,7 @@ class BarcodeView : FrameLayout {
                 }
             })
         }.flatMap {
-            BarcodeScanner(context, it).getObservable(previewSize)
+            BarcodeScanner(context, it, BarcodeScannerConfig()).getObservable(previewSize)
         }.subscribeOn(Schedulers.io())
     }
 
