@@ -57,6 +57,7 @@ class BarcodeView : FrameLayout {
         addView(cameraView)
     }
 
+    //region public
     fun getObservable(): Observable<Barcode> {
         return Observable.fromPublisher<SurfaceHolder> {
             cameraView.holder.addCallback(object : SurfaceHolder.Callback {
@@ -106,7 +107,9 @@ class BarcodeView : FrameLayout {
 
         return this
     }
+    //endregion
 
+    //region private
     private fun startOverlay() {
         addView(drawOverlay as View, FrameLayout.LayoutParams(width, height))
 
@@ -137,4 +140,5 @@ class BarcodeView : FrameLayout {
     private fun translateY(y: Int): Int {
         return (y * yScaleFactor).toInt()
     }
+    //endregion
 }
