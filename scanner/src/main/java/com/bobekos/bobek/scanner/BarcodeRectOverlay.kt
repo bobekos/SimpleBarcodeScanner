@@ -24,7 +24,7 @@ class BarcodeRectOverlay : View, BarcodeOverlay {
 
     private val paint by lazy {
         Paint().apply {
-            color = Color.RED
+            color = Color.WHITE
             style = Paint.Style.STROKE
             strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 3f, context?.resources?.displayMetrics)
         }
