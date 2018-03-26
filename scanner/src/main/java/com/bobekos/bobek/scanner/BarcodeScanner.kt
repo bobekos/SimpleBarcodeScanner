@@ -14,7 +14,7 @@ import com.google.android.gms.vision.Tracker
 import com.google.android.gms.vision.barcode.Barcode
 import com.google.android.gms.vision.barcode.BarcodeDetector
 import io.reactivex.Observable
-import org.reactivestreams.Subscriber
+import io.reactivex.ObservableEmitter
 
 
 internal class BarcodeScanner(
@@ -28,34 +28,45 @@ internal class BarcodeScanner(
                 .build()
     }
 
+    private val cameraSource by lazy {
+        getCameraSource(config.previewSize, config.isAutoFocus)
+    }
+
     @SuppressLint("MissingPermission")
     fun getObservable(): Observable<Barcode> {
-        return Observable.fromPublisher<Barcode> {
-            if (context == null) {
-                it.onError(NullPointerException("Context is null"))
+        return Observable.create { emitter ->
+            if (context == null && !emitter.isDisposed) {
+                emitter.onError(NullPointerException("Context is null"))
             } else {
                 if (checkPermission()) {
-                    getCameraSource(config.previewSize, config.isAutoFocus).start(holder)
+                    cameraSource.start(holder)
 
-                    val tracker = BarcodeTracker(it)
+                    val tracker = BarcodeTracker(emitter)
                     val processor = MultiProcessor.Builder(BarcodeTrackerFactory(tracker)).build()
-
                     barcodeDetector.setProcessor(processor)
                 } else {
-                    it.onError(SecurityException("Permission Denial: Camera"))
+                    if (!emitter.isDisposed) {
+                        emitter.onError(SecurityException("Permission Denial: Camera"))
+                    }
+                }
+
+                emitter.setCancellable {
+                    cameraSource.release()
                 }
             }
         }
     }
 
-    inner class BarcodeTracker(private val subscriber: Subscriber<in Barcode>) : Tracker<Barcode>() {
+    inner class BarcodeTracker(private val subscriber: ObservableEmitter<Barcode>) : Tracker<Barcode>() {
 
         override fun onNewItem(id: Int, barcode: Barcode?) {
             if (barcode != null) {
-                subscriber.onNext(barcode)
-
                 if (config.drawOverLay) {
                     BarcodeView.overlaySubject.onNext(barcode.boundingBox)
+                }
+
+                if (!subscriber.isDisposed) {
+                    subscriber.onNext(barcode)
                 }
             }
         }

@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.FrameLayout
 import com.google.android.gms.vision.barcode.Barcode
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -57,29 +58,11 @@ class BarcodeView : FrameLayout {
         addView(cameraView)
     }
 
+    //region public
     fun getObservable(): Observable<Barcode> {
-        return Observable.fromPublisher<SurfaceHolder> {
-            cameraView.holder.addCallback(object : SurfaceHolder.Callback {
-                override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {
-
-                }
-
-                override fun surfaceDestroyed(p0: SurfaceHolder?) {
-                    overlayDisposable?.dispose()
-                    it.onComplete()
-                }
-
-                override fun surfaceCreated(holder: SurfaceHolder?) {
-                    if (drawOverlay != null) {
-                        startOverlay()
-                    }
-
-                    it.onNext(holder)
-                }
-            })
-        }.flatMap {
-            BarcodeScanner(context, it, config).getObservable()
-        }.subscribeOn(Schedulers.io())
+        return getSurfaceObservable()
+                .flatMap { BarcodeScanner(context, it, config).getObservable() }
+                .subscribeOn(Schedulers.io())
     }
 
     fun setPreviewSize(width: Int, height: Int): BarcodeView {
@@ -106,17 +89,52 @@ class BarcodeView : FrameLayout {
 
         return this
     }
+    //endregion
+
+    //region private
+    private fun getSurfaceObservable(): Observable<SurfaceHolder> {
+        return Observable.create<SurfaceHolder> { emitter ->
+            cameraView.holder.addCallback(object : SurfaceHolder.Callback {
+                override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {
+
+                }
+
+                override fun surfaceDestroyed(p0: SurfaceHolder?) {
+                    overlayDisposable?.dispose()
+
+                    if (!emitter.isDisposed) {
+                        emitter.onComplete()
+                    }
+                }
+
+                override fun surfaceCreated(holder: SurfaceHolder?) {
+                    if (drawOverlay != null) {
+                        startOverlay()
+                    }
+
+                    if (holder != null && !emitter.isDisposed) {
+                        emitter.onNext(holder)
+                    }
+                }
+            })
+        }
+    }
+
 
     private fun startOverlay() {
+        removeView(drawOverlay as View)
         addView(drawOverlay as View, FrameLayout.LayoutParams(width, height))
 
         overlayDisposable = overlaySubject
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe {
-                    if (drawOverlay != null) {
-                        drawOverlay?.onUpdate(calculateOverlayView(it))
-                    }
-                }
+                .filter { drawOverlay != null }
+                .subscribe(
+                        {
+                            drawOverlay?.onUpdate(calculateOverlayView(it))
+                        },
+                        {
+                            drawOverlay?.onUpdate(Rect())
+                        })
     }
 
     private fun calculateOverlayView(barcodeRect: Rect): Rect {
@@ -137,4 +155,5 @@ class BarcodeView : FrameLayout {
     private fun translateY(y: Int): Int {
         return (y * yScaleFactor).toInt()
     }
+    //endregion
 }
