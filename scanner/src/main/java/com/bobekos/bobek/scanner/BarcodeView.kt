@@ -1,16 +1,16 @@
 package com.bobekos.bobek.scanner
 
 import android.content.Context
+import android.graphics.Matrix
 import android.graphics.Rect
+import android.graphics.RectF
 import android.hardware.Camera
 import android.util.AttributeSet
-import android.view.SurfaceHolder
-import android.view.SurfaceView
-import android.view.View
+import android.view.*
 import android.widget.FrameLayout
+import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.barcode.Barcode
 import io.reactivex.Observable
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -84,6 +84,12 @@ class BarcodeView : FrameLayout {
         return this
     }
 
+    fun setFacing(facing: Int): BarcodeView {
+        config.facing = facing
+
+        return this
+    }
+
     fun drawOverlay(overlay: BarcodeOverlay? = BarcodeRectOverlay(context)): BarcodeView {
         drawOverlay = overlay
         config.drawOverLay = true
@@ -109,7 +115,7 @@ class BarcodeView : FrameLayout {
                 }
 
                 override fun surfaceCreated(holder: SurfaceHolder?) {
-                    config.previewSize = getValidPreviewSize()
+                    loadCameraSettings()
 
                     if (drawOverlay != null) {
                         startOverlay()
@@ -140,10 +146,31 @@ class BarcodeView : FrameLayout {
                         })
     }
 
-    //TODO facing per id
-    //TODO release camera on dispose
-    private fun getValidPreviewSize(): Size {
-        val camera = Camera.open()
+    private fun loadCameraSettings() {
+        val cameraId = getCameraIdByFacing()
+        if (cameraId == -1) {
+            throw NullPointerException("Could not find camera for selected facing")
+        }
+
+        val camera = Camera.open(cameraId)
+        config.previewSize = getValidPreviewSize(camera)
+
+        camera.release()
+    }
+
+    private fun getCameraIdByFacing(): Int {
+        val cameraInfo = Camera.CameraInfo()
+        for (i in 0..Camera.getNumberOfCameras()) {
+            Camera.getCameraInfo(i, cameraInfo)
+            if (cameraInfo.facing == config.facing) {
+                return i
+            }
+        }
+
+        return -1
+    }
+
+    private fun getValidPreviewSize(camera: Camera): Size {
         val supportedPreviewSize = camera.parameters.supportedPreviewSizes
 
         var result = config.previewSize
