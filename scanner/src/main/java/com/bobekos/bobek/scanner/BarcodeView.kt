@@ -2,6 +2,7 @@ package com.bobekos.bobek.scanner
 
 import android.content.Context
 import android.graphics.Rect
+import android.hardware.Camera
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -108,6 +109,8 @@ class BarcodeView : FrameLayout {
                 }
 
                 override fun surfaceCreated(holder: SurfaceHolder?) {
+                    config.previewSize = getValidPreviewSize()
+
                     if (drawOverlay != null) {
                         startOverlay()
                     }
@@ -135,6 +138,27 @@ class BarcodeView : FrameLayout {
                         {
                             drawOverlay?.onUpdate(Rect())
                         })
+    }
+
+    //TODO facing per id
+    //TODO release camera on dispose
+    private fun getValidPreviewSize(): Size {
+        val camera = Camera.open()
+        val supportedPreviewSize = camera.parameters.supportedPreviewSizes
+
+        var result = config.previewSize
+        var minDiff = Int.MAX_VALUE
+
+        supportedPreviewSize.forEach {
+            val diff = Math.abs(it.width - width) +
+                    Math.abs(it.height - height)
+            if (diff < minDiff) {
+                result = Size(it.width, it.height)
+                minDiff = diff
+            }
+        }
+
+        return result
     }
 
     private fun calculateOverlayView(barcodeRect: Rect): Rect {

@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Rect
+import android.hardware.Camera
 import android.support.v4.app.ActivityCompat
 import android.view.SurfaceHolder
 import com.google.android.gms.vision.CameraSource
@@ -29,7 +30,7 @@ internal class BarcodeScanner(
     }
 
     private val cameraSource by lazy {
-        getCameraSource(config.previewSize, config.isAutoFocus)
+        createCameraSource(config.previewSize, config.isAutoFocus)
     }
 
     @SuppressLint("MissingPermission")
@@ -88,11 +89,10 @@ internal class BarcodeScanner(
         }
     }
 
-    private fun getCameraSource(size: Size, isAutoFocus: Boolean): CameraSource {
+    private fun createCameraSource(size: Size, isAutoFocus: Boolean): CameraSource {
         return CameraSource.Builder(context, barcodeDetector)
                 .setFacing(CameraSource.CAMERA_FACING_BACK)
                 .setRequestedPreviewSize(size.width, size.height)
-                .setRequestedFps(15.0f)
                 .setAutoFocusEnabled(isAutoFocus)
                 .build()
     }
