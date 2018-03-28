@@ -20,7 +20,8 @@ import io.reactivex.ObservableEmitter
 internal class BarcodeScanner(
         private val context: Context?,
         private val holder: SurfaceHolder,
-        private val config: BarcodeScannerConfig) {
+        private val config: BarcodeScannerConfig,
+        private val holderAvailable: Boolean) {
 
     private val barcodeDetector by lazy {
         BarcodeDetector.Builder(context)
@@ -34,7 +35,11 @@ internal class BarcodeScanner(
 
     @SuppressLint("MissingPermission")
     fun getObservable(): Observable<Barcode> {
-        return Observable.create { emitter ->
+        return Observable.create<Barcode> { emitter ->
+            if (!holderAvailable) {
+                emitter.onComplete()
+            }
+
             if (context == null && !emitter.isDisposed) {
                 emitter.onError(NullPointerException("Context is null"))
             } else {
