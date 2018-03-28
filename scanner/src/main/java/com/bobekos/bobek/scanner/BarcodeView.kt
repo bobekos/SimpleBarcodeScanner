@@ -138,8 +138,13 @@ class BarcodeView : FrameLayout {
                 .observeOn(AndroidSchedulers.mainThread())
                 .filter { drawOverlay != null }
                 .subscribe(
-                        {
-                            drawOverlay?.onUpdate(calculateOverlayView(it))
+                        { rect ->
+                            drawOverlay?.let { overlay ->
+                                overlay.onUpdate(calculateOverlayView(rect))
+                                if (isFacingFront()) {
+                                    (overlay as View).scaleX = -1f
+                                }
+                            }
                         },
                         {
                             drawOverlay?.onUpdate(Rect())
@@ -168,6 +173,10 @@ class BarcodeView : FrameLayout {
         }
 
         return -1
+    }
+
+    private fun isFacingFront(): Boolean {
+        return config.facing == CameraSource.CAMERA_FACING_FRONT
     }
 
     private fun getValidPreviewSize(camera: Camera): Size {
