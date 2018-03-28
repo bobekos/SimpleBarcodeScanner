@@ -1,12 +1,12 @@
 package com.bobekos.bobek.scanner
 
 import android.content.Context
-import android.graphics.Matrix
 import android.graphics.Rect
-import android.graphics.RectF
 import android.hardware.Camera
 import android.util.AttributeSet
-import android.view.*
+import android.view.SurfaceHolder
+import android.view.SurfaceView
+import android.view.View
 import android.widget.FrameLayout
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.barcode.Barcode
@@ -62,7 +62,7 @@ class BarcodeView : FrameLayout {
     //region public
     fun getObservable(): Observable<Barcode> {
         return getSurfaceObservable()
-                .flatMap { BarcodeScanner(context, it, config).getObservable() }
+                .flatMap { BarcodeScanner(context, cameraView.holder, config, it).getObservable() }
                 .subscribeOn(Schedulers.io())
     }
 
@@ -99,18 +99,18 @@ class BarcodeView : FrameLayout {
     //endregion
 
     //region private
-    private fun getSurfaceObservable(): Observable<SurfaceHolder> {
-        return Observable.create<SurfaceHolder> { emitter ->
+    private fun getSurfaceObservable(): Observable<Boolean> {
+        return Observable.create<Boolean> { emitter ->
             cameraView.holder.addCallback(object : SurfaceHolder.Callback {
                 override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {
 
                 }
 
-                override fun surfaceDestroyed(p0: SurfaceHolder?) {
+                override fun surfaceDestroyed(holder: SurfaceHolder?) {
                     overlayDisposable?.dispose()
 
                     if (!emitter.isDisposed) {
-                        emitter.onComplete()
+                        emitter.onNext(false)
                     }
                 }
 
@@ -122,7 +122,7 @@ class BarcodeView : FrameLayout {
                     }
 
                     if (holder != null && !emitter.isDisposed) {
-                        emitter.onNext(holder)
+                        emitter.onNext(true)
                     }
                 }
             })
