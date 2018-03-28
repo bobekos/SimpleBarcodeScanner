@@ -23,7 +23,8 @@ class MainActivity : AppCompatActivity() {
 
         disposable = barcodeView
                 .setBarcodeFormats(Barcode.QR_CODE)
-                .setFacing(CameraSource.CAMERA_FACING_FRONT)
+                .setFacing(CameraSource.CAMERA_FACING_BACK)
+                .setFlash(true)
                 .drawOverlay()
                 .getObservable()
                 .observeOn(AndroidSchedulers.mainThread())

@@ -96,6 +96,12 @@ class BarcodeView : FrameLayout {
 
         return this
     }
+
+    fun setFlash(enabled: Boolean): BarcodeView {
+        config.useFlash = enabled
+
+        return this
+    }
     //endregion
 
     //region private
