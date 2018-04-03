@@ -6,7 +6,7 @@ import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.barcode.BarcodeDetector
 
 
-internal class Camera(ctx: Context?, detector: BarcodeDetector, config: BarcodeScannerConfig) {
+internal class Camera(ctx: Context?, detector: BarcodeDetector, private val config: BarcodeScannerConfig) {
 
     private val cameraSource: CameraSource = CameraSource.Builder(ctx, detector)
             .setFacing(config.facing)
@@ -38,8 +38,16 @@ internal class Camera(ctx: Context?, detector: BarcodeDetector, config: BarcodeS
     fun setParametersFromConfig() {
         val camera = get()
         val parameters = camera?.parameters
-        parameters?.flashMode = "on"
+        setFlash(parameters)
         camera?.parameters = parameters
+    }
+
+    private fun setFlash(parameters: Camera.Parameters?) {
+        parameters?.flashMode = if (config.useFlash) {
+            Camera.Parameters.FLASH_MODE_TORCH
+        } else {
+            Camera.Parameters.FLASH_MODE_OFF
+        }
     }
 
     fun getCameraSource(): CameraSource {
