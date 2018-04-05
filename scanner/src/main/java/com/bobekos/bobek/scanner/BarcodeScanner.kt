@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.support.v4.app.ActivityCompat
 import android.view.SurfaceHolder
-import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.MultiProcessor
 import com.google.android.gms.vision.Tracker
@@ -29,8 +28,8 @@ internal class BarcodeScanner(
                 .build()
     }
 
-    private val cameraSource by lazy {
-        createCameraSource()
+    private val camera by lazy {
+        Camera(context, barcodeDetector, config)
     }
 
     @SuppressLint("MissingPermission")
@@ -38,25 +37,26 @@ internal class BarcodeScanner(
         return Observable.create<Barcode> { emitter ->
             if (!holderAvailable) {
                 emitter.onComplete()
-            }
-
-            if (context == null && !emitter.isDisposed) {
-                emitter.onError(NullPointerException("Context is null"))
             } else {
-                if (checkPermission()) {
-                    cameraSource.start(holder)
-
-                    val tracker = BarcodeTracker(emitter)
-                    val processor = MultiProcessor.Builder(BarcodeTrackerFactory(tracker)).build()
-                    barcodeDetector.setProcessor(processor)
+                if (context == null && !emitter.isDisposed) {
+                    emitter.onError(NullPointerException("Context is null"))
                 } else {
-                    if (!emitter.isDisposed) {
-                        emitter.onError(SecurityException("Permission Denial: Camera"))
-                    }
-                }
+                    if (checkPermission()) {
+                        camera.getCameraSource().start(holder)
+                        camera.setParametersFromConfig()
 
-                emitter.setCancellable {
-                    cameraSource.release()
+                        val tracker = BarcodeTracker(emitter)
+                        val processor = MultiProcessor.Builder(BarcodeTrackerFactory(tracker)).build()
+                        barcodeDetector.setProcessor(processor)
+                    } else {
+                        if (!emitter.isDisposed) {
+                            emitter.onError(SecurityException("Permission Denial: Camera"))
+                        }
+                    }
+
+                    emitter.setCancellable {
+                        camera.getCameraSource().release()
+                    }
                 }
             }
         }
@@ -91,14 +91,6 @@ internal class BarcodeScanner(
                 BarcodeView.overlaySubject.onNext(Rect())
             }
         }
-    }
-
-    private fun createCameraSource(): CameraSource {
-        return CameraSource.Builder(context, barcodeDetector)
-                .setFacing(config.facing)
-                .setRequestedPreviewSize(config.previewSize.width, config.previewSize.height)
-                .setAutoFocusEnabled(config.isAutoFocus)
-                .build()
     }
 
     private fun checkPermission(): Boolean {
