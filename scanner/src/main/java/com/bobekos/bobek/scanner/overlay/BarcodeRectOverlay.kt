@@ -1,4 +1,4 @@
-package com.bobekos.bobek.scanner
+package com.bobekos.bobek.scanner.overlay
 
 import android.content.Context
 import android.graphics.Canvas

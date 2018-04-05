@@ -8,6 +8,11 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
 import android.widget.FrameLayout
+import com.bobekos.bobek.scanner.overlay.BarcodeOverlay
+import com.bobekos.bobek.scanner.overlay.BarcodeRectOverlay
+import com.bobekos.bobek.scanner.scanner.BarcodeScanner
+import com.bobekos.bobek.scanner.scanner.BarcodeScannerConfig
+import com.bobekos.bobek.scanner.scanner.Size
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.barcode.Barcode
 import io.reactivex.Observable

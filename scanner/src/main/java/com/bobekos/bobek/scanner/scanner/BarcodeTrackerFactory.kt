@@ -1,4 +1,4 @@
-package com.bobekos.bobek.scanner
+package com.bobekos.bobek.scanner.scanner
 
 import com.google.android.gms.vision.MultiProcessor
 import com.google.android.gms.vision.Tracker

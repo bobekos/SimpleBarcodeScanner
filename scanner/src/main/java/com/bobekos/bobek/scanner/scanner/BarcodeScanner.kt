@@ -1,4 +1,4 @@
-package com.bobekos.bobek.scanner
+package com.bobekos.bobek.scanner.scanner
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.support.v4.app.ActivityCompat
 import android.view.SurfaceHolder
+import com.bobekos.bobek.scanner.BarcodeView
 import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.MultiProcessor
 import com.google.android.gms.vision.Tracker
