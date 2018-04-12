@@ -40,11 +40,11 @@ class BarcodeView : FrameLayout {
     }
 
     private val xScaleFactor by lazy {
-        width.toFloat().div(Math.min(config.previewSize.width, config.previewSize.height))
+        cameraView.width.toFloat().div(Math.min(config.previewSize.width, config.previewSize.height))
     }
 
     private val yScaleFactor by lazy {
-        height.toFloat().div(Math.max(config.previewSize.width, config.previewSize.height))
+        cameraView.height.toFloat().div(Math.max(config.previewSize.width, config.previewSize.height))
     }
 
     private val cameraView by lazy {
