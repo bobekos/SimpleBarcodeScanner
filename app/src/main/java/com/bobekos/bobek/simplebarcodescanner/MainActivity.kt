@@ -3,6 +3,7 @@ package com.bobekos.bobek.simplebarcodescanner
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
+import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.barcode.Barcode
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -22,6 +23,10 @@ class MainActivity : AppCompatActivity() {
 
         disposable = barcodeView
                 .setBarcodeFormats(Barcode.QR_CODE)
+                .setFacing(CameraSource.CAMERA_FACING_BACK)
+                .setFlash(false)
+                .setAutoFocus(true)
+                .setPreviewSize(640, 480)
                 .drawOverlay()
                 .getObservable()
                 .observeOn(AndroidSchedulers.mainThread())

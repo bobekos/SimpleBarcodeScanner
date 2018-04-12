@@ -1,14 +1,22 @@
 package com.bobekos.bobek.scanner
 
+import android.Manifest
 import android.content.Context
-import android.graphics.Matrix
+import android.content.pm.PackageManager
 import android.graphics.Rect
-import android.graphics.RectF
-import android.hardware.Camera
+import android.support.v4.app.ActivityCompat
 import android.util.AttributeSet
-import android.view.*
+import android.view.SurfaceHolder
+import android.view.SurfaceView
+import android.view.View
 import android.widget.FrameLayout
-import com.google.android.gms.vision.CameraSource
+import com.bobekos.bobek.scanner.overlay.BarcodeOverlay
+import com.bobekos.bobek.scanner.overlay.BarcodeRectOverlay
+import com.bobekos.bobek.scanner.overlay.Optional
+import com.bobekos.bobek.scanner.scanner.BarcodeScanner
+import com.bobekos.bobek.scanner.scanner.BarcodeScannerConfig
+import com.bobekos.bobek.scanner.scanner.Camera
+import com.bobekos.bobek.scanner.scanner.Size
 import com.google.android.gms.vision.barcode.Barcode
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -28,15 +36,15 @@ class BarcodeView : FrameLayout {
     }
 
     companion object {
-        val overlaySubject: PublishSubject<Rect> = PublishSubject.create<Rect>()
+        internal val overlaySubject: PublishSubject<Optional<Barcode>> = PublishSubject.create<Optional<Barcode>>()
     }
 
     private val xScaleFactor by lazy {
-        width.toFloat().div(Math.min(config.previewSize.width, config.previewSize.height))
+        cameraView.width.toFloat().div(Math.min(config.previewSize.width, config.previewSize.height))
     }
 
     private val yScaleFactor by lazy {
-        height.toFloat().div(Math.max(config.previewSize.width, config.previewSize.height))
+        cameraView.height.toFloat().div(Math.max(config.previewSize.width, config.previewSize.height))
     }
 
     private val cameraView by lazy {
@@ -62,7 +70,7 @@ class BarcodeView : FrameLayout {
     //region public
     fun getObservable(): Observable<Barcode> {
         return getSurfaceObservable()
-                .flatMap { BarcodeScanner(context, it, config).getObservable() }
+                .flatMap { BarcodeScanner(context, cameraView.holder, config, it).getObservable() }
                 .subscribeOn(Schedulers.io())
     }
 
@@ -96,33 +104,49 @@ class BarcodeView : FrameLayout {
 
         return this
     }
+
+    fun setFlash(enabled: Boolean): BarcodeView {
+        config.useFlash = enabled
+
+        return this
+    }
     //endregion
 
     //region private
-    private fun getSurfaceObservable(): Observable<SurfaceHolder> {
-        return Observable.create<SurfaceHolder> { emitter ->
+    private fun getSurfaceObservable(): Observable<Boolean> {
+        return Observable.create<Boolean> { emitter ->
             cameraView.holder.addCallback(object : SurfaceHolder.Callback {
                 override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {
 
                 }
 
-                override fun surfaceDestroyed(p0: SurfaceHolder?) {
+                override fun surfaceDestroyed(holder: SurfaceHolder?) {
                     overlayDisposable?.dispose()
 
                     if (!emitter.isDisposed) {
-                        emitter.onComplete()
+                        emitter.onNext(false)
                     }
                 }
 
                 override fun surfaceCreated(holder: SurfaceHolder?) {
-                    loadCameraSettings()
+                    if (!emitter.isDisposed) {
+                        if (!checkPermission()) {
+                            emitter.onError(SecurityException("Permission Denial: Camera"))
+                        } else {
+                            try {
+                                setCameraSettings()
+                            } catch (e: Exception) {
+                                emitter.onError(e)
+                            }
+                        }
+                    }
 
                     if (drawOverlay != null) {
                         startOverlay()
                     }
 
                     if (holder != null && !emitter.isDisposed) {
-                        emitter.onNext(holder)
+                        emitter.onNext(true)
                     }
                 }
             })
@@ -132,60 +156,51 @@ class BarcodeView : FrameLayout {
 
     private fun startOverlay() {
         removeView(drawOverlay as View)
-        addView(drawOverlay as View, FrameLayout.LayoutParams(width, height))
+        addView(drawOverlay as View, FrameLayout.LayoutParams(cameraView.width, cameraView.height))
 
         overlayDisposable = overlaySubject
                 .observeOn(AndroidSchedulers.mainThread())
                 .filter { drawOverlay != null }
                 .subscribe(
-                        {
-                            drawOverlay?.onUpdate(calculateOverlayView(it))
+                        { result ->
+                            drawOverlay?.let { overlay ->
+                                when (result) {
+                                    is Optional.Some -> {
+                                        overlay.onUpdate(
+                                                calculateOverlayView(result.element.boundingBox),
+                                                result.element.displayValue)
+                                    }
+                                    is Optional.None -> {
+                                        overlay.onUpdate()
+                                    }
+                                }
+
+                                if (Camera.isFacingFront(config.facing) && overlay is View) {
+                                    (overlay as View).scaleX = -1f
+                                }
+                            }
                         },
                         {
-                            drawOverlay?.onUpdate(Rect())
+                            drawOverlay?.onUpdate()
                         })
     }
 
-    private fun loadCameraSettings() {
-        val cameraId = getCameraIdByFacing()
-        if (cameraId == -1) {
-            throw NullPointerException("Could not find camera for selected facing")
+    private fun setCameraSettings() {
+        val cameraId = Camera.getCameraIdByFacing(config.facing)
+        if (cameraId != -1) {
+            try {
+                config.previewSize = Camera.getValidPreviewSize(cameraId, cameraView.width, cameraView.height, config.previewSize)
+            } catch (e: RuntimeException) {
+                throw e
+            }
+        } else {
+            throw NullPointerException("No camera found for selected facing")
         }
-
-        val camera = Camera.open(cameraId)
-        config.previewSize = getValidPreviewSize(camera)
-
-        camera.release()
     }
 
-    private fun getCameraIdByFacing(): Int {
-        val cameraInfo = Camera.CameraInfo()
-        for (i in 0..Camera.getNumberOfCameras()) {
-            Camera.getCameraInfo(i, cameraInfo)
-            if (cameraInfo.facing == config.facing) {
-                return i
-            }
-        }
-
-        return -1
-    }
-
-    private fun getValidPreviewSize(camera: Camera): Size {
-        val supportedPreviewSize = camera.parameters.supportedPreviewSizes
-
-        var result = config.previewSize
-        var minDiff = Int.MAX_VALUE
-
-        supportedPreviewSize.forEach {
-            val diff = Math.abs(it.width - width) +
-                    Math.abs(it.height - height)
-            if (diff < minDiff) {
-                result = Size(it.width, it.height)
-                minDiff = diff
-            }
-        }
-
-        return result
+    private fun checkPermission(): Boolean {
+        return context != null &&
+                ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun calculateOverlayView(barcodeRect: Rect): Rect {
