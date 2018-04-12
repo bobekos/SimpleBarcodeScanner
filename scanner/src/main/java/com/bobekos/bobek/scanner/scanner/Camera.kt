@@ -1,4 +1,4 @@
-package com.bobekos.bobek.scanner
+package com.bobekos.bobek.scanner.scanner
 
 import android.content.Context
 import android.hardware.Camera

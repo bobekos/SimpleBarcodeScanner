@@ -8,6 +8,12 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
 import android.widget.FrameLayout
+import com.bobekos.bobek.scanner.overlay.BarcodeOverlay
+import com.bobekos.bobek.scanner.overlay.BarcodeRectOverlay
+import com.bobekos.bobek.scanner.overlay.Optional
+import com.bobekos.bobek.scanner.scanner.BarcodeScanner
+import com.bobekos.bobek.scanner.scanner.BarcodeScannerConfig
+import com.bobekos.bobek.scanner.scanner.Size
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.barcode.Barcode
 import io.reactivex.Observable
@@ -28,7 +34,7 @@ class BarcodeView : FrameLayout {
     }
 
     companion object {
-        val overlaySubject: PublishSubject<Rect> = PublishSubject.create<Rect>()
+        val overlaySubject: PublishSubject<Optional<Barcode>> = PublishSubject.create<Optional<Barcode>>()
     }
 
     private val xScaleFactor by lazy {
@@ -144,10 +150,20 @@ class BarcodeView : FrameLayout {
                 .observeOn(AndroidSchedulers.mainThread())
                 .filter { drawOverlay != null }
                 .subscribe(
-                        { rect ->
+                        { result ->
                             drawOverlay?.let { overlay ->
-                                overlay.onUpdate(calculateOverlayView(rect))
-                                if (isFacingFront()) {
+                                when (result) {
+                                    is Optional.Some -> {
+                                        overlay.onUpdate(
+                                                calculateOverlayView(result.element.boundingBox),
+                                                result.element.displayValue)
+                                    }
+                                    is Optional.None -> {
+                                        overlay.onUpdate()
+                                    }
+                                }
+
+                                if (isFacingFront() && overlay is View) {
                                     (overlay as View).scaleX = -1f
                                 }
                             }
@@ -163,10 +179,14 @@ class BarcodeView : FrameLayout {
             throw NullPointerException("Could not find camera for selected facing")
         }
 
-        val camera = Camera.open(cameraId)
-        config.previewSize = getValidPreviewSize(camera)
+        try {
+            val camera = Camera.open(cameraId)
+            config.previewSize = getValidPreviewSize(camera)
 
-        camera.release()
+            camera.release()
+        } catch (e: RuntimeException) {
+            e.printStackTrace()
+        }
     }
 
     private fun getCameraIdByFacing(): Int {

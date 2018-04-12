@@ -1,12 +1,13 @@
-package com.bobekos.bobek.scanner
+package com.bobekos.bobek.scanner.scanner
 
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Rect
 import android.support.v4.app.ActivityCompat
 import android.view.SurfaceHolder
+import com.bobekos.bobek.scanner.BarcodeView
+import com.bobekos.bobek.scanner.overlay.Optional
 import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.MultiProcessor
 import com.google.android.gms.vision.Tracker
@@ -67,7 +68,7 @@ internal class BarcodeScanner(
         override fun onNewItem(id: Int, barcode: Barcode?) {
             if (barcode != null) {
                 if (config.drawOverLay) {
-                    BarcodeView.overlaySubject.onNext(barcode.boundingBox)
+                    BarcodeView.overlaySubject.onNext(Optional.Some(barcode))
                 }
 
                 if (!subscriber.isDisposed) {
@@ -78,7 +79,7 @@ internal class BarcodeScanner(
 
         override fun onUpdate(detection: Detector.Detections<Barcode>?, barcode: Barcode?) {
             if (barcode != null && config.drawOverLay) {
-                BarcodeView.overlaySubject.onNext(barcode.boundingBox)
+                BarcodeView.overlaySubject.onNext(Optional.Some(barcode))
             }
         }
 
@@ -88,7 +89,7 @@ internal class BarcodeScanner(
 
         override fun onDone() {
             if (config.drawOverLay) {
-                BarcodeView.overlaySubject.onNext(Rect())
+                BarcodeView.overlaySubject.onNext(Optional.None)
             }
         }
     }
