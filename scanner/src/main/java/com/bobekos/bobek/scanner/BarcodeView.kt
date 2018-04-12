@@ -36,7 +36,7 @@ class BarcodeView : FrameLayout {
     }
 
     companion object {
-        val overlaySubject: PublishSubject<Optional<Barcode>> = PublishSubject.create<Optional<Barcode>>()
+        internal val overlaySubject: PublishSubject<Optional<Barcode>> = PublishSubject.create<Optional<Barcode>>()
     }
 
     private val xScaleFactor by lazy {
