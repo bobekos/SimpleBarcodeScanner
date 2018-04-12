@@ -8,6 +8,45 @@ import com.google.android.gms.vision.barcode.BarcodeDetector
 
 internal class Camera(ctx: Context?, detector: BarcodeDetector, private val config: BarcodeScannerConfig) {
 
+    companion object {
+        fun getCameraIdByFacing(facing: Int): Int {
+            val cameraInfo = Camera.CameraInfo()
+            for (i in 0..Camera.getNumberOfCameras()) {
+                Camera.getCameraInfo(i, cameraInfo)
+                if (cameraInfo.facing == facing) {
+                    return i
+                }
+            }
+
+            return -1
+        }
+
+        fun getValidPreviewSize(cameraId: Int, width:Int, height: Int, defaultSize: Size): Size {
+            val camera = Camera.open(cameraId)
+            val supportedPreviewSize = camera.parameters.supportedPreviewSizes
+
+            var result = defaultSize
+            var minDiff = Int.MAX_VALUE
+
+            supportedPreviewSize.forEach {
+                val diff = Math.abs(it.width - width) +
+                        Math.abs(it.height - height)
+                if (diff < minDiff) {
+                    result = Size(it.width, it.height)
+                    minDiff = diff
+                }
+            }
+
+            camera.release()
+
+            return result
+        }
+
+        fun isFacingFront(facing: Int): Boolean {
+            return facing == CameraSource.CAMERA_FACING_FRONT
+        }
+    }
+
     private val cameraSource: CameraSource = CameraSource.Builder(ctx, detector)
             .setFacing(config.facing)
             .setRequestedPreviewSize(config.previewSize.width, config.previewSize.height)

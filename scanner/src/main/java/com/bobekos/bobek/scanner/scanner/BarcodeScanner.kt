@@ -1,10 +1,7 @@
 package com.bobekos.bobek.scanner.scanner
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.PackageManager
-import android.support.v4.app.ActivityCompat
 import android.view.SurfaceHolder
 import com.bobekos.bobek.scanner.BarcodeView
 import com.bobekos.bobek.scanner.overlay.Optional
@@ -42,18 +39,12 @@ internal class BarcodeScanner(
                 if (context == null && !emitter.isDisposed) {
                     emitter.onError(NullPointerException("Context is null"))
                 } else {
-                    if (checkPermission()) {
-                        camera.getCameraSource().start(holder)
-                        camera.setParametersFromConfig()
+                    camera.getCameraSource().start(holder)
+                    camera.setParametersFromConfig()
 
-                        val tracker = BarcodeTracker(emitter)
-                        val processor = MultiProcessor.Builder(BarcodeTrackerFactory(tracker)).build()
-                        barcodeDetector.setProcessor(processor)
-                    } else {
-                        if (!emitter.isDisposed) {
-                            emitter.onError(SecurityException("Permission Denial: Camera"))
-                        }
-                    }
+                    val tracker = BarcodeTracker(emitter)
+                    val processor = MultiProcessor.Builder(BarcodeTrackerFactory(tracker)).build()
+                    barcodeDetector.setProcessor(processor)
 
                     emitter.setCancellable {
                         camera.getCameraSource().release()
@@ -92,10 +83,5 @@ internal class BarcodeScanner(
                 BarcodeView.overlaySubject.onNext(Optional.None)
             }
         }
-    }
-
-    private fun checkPermission(): Boolean {
-        return context != null &&
-                ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
     }
 }
