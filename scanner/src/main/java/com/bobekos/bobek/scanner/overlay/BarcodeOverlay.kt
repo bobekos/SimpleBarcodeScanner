@@ -5,5 +5,5 @@ import android.graphics.Rect
 
 interface BarcodeOverlay {
 
-    fun onUpdate(posRect: Rect)
+    fun onUpdate(posRect: Rect = Rect(), barcodeValue: String = "")
 }

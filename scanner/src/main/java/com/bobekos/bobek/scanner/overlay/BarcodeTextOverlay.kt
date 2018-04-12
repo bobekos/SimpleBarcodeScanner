@@ -1,16 +1,12 @@
 package com.bobekos.bobek.scanner.overlay
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
+import android.graphics.*
 import android.util.AttributeSet
-import android.util.TypedValue
 import android.view.View
 
 
-class BarcodeRectOverlay : View, BarcodeOverlay {
+class BarcodeTextOverlay : View, BarcodeOverlay {
 
     constructor(context: Context?) : super(context)
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
@@ -18,11 +14,12 @@ class BarcodeRectOverlay : View, BarcodeOverlay {
 
     private lateinit var rect: Rect
 
+    private var value: String = ""
     private val paint by lazy {
         Paint().apply {
             color = Color.WHITE
-            style = Paint.Style.STROKE
-            strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 3f, context?.resources?.displayMetrics)
+            textSize = 40f
+            typeface = Typeface.DEFAULT_BOLD
         }
     }
 
@@ -32,6 +29,8 @@ class BarcodeRectOverlay : View, BarcodeOverlay {
 
     override fun onUpdate(posRect: Rect, barcodeValue: String) {
         rect = posRect
+        value = barcodeValue
+
         invalidate()
     }
 
@@ -39,7 +38,7 @@ class BarcodeRectOverlay : View, BarcodeOverlay {
         super.onDraw(canvas)
 
         if (::rect.isInitialized) {
-            canvas?.drawRect(rect, paint)
+            canvas?.drawText(value, rect.left.toFloat(), rect.bottom.toFloat(), paint)
         }
     }
 }
