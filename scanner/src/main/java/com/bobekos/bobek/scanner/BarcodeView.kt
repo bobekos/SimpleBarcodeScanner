@@ -19,6 +19,7 @@ import com.bobekos.bobek.scanner.scanner.Camera
 import com.bobekos.bobek.scanner.scanner.Size
 import com.google.android.gms.vision.barcode.Barcode
 import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -129,35 +130,46 @@ class BarcodeView : FrameLayout {
                 }
 
                 override fun surfaceCreated(holder: SurfaceHolder?) {
-                    if (!emitter.isDisposed) {
-                        if (!checkPermission()) {
-                            emitter.onError(SecurityException("Permission Denial: Camera"))
-                        } else {
-                            try {
-                                setCameraSettings()
-                            } catch (e: Exception) {
-                                emitter.onError(e)
-                            }
-                        }
-                    }
-
-                    if (drawOverlay != null) {
-                        startOverlay()
-                    }
-
-                    if (holder != null && !emitter.isDisposed) {
-                        emitter.onNext(true)
+                    holder?.let {
+                        onSurfaceReady(emitter)
                     }
                 }
             })
+
+            if (cameraView.holder.surface.isValid && !emitter.isDisposed) {
+                onSurfaceReady(emitter)
+            }
+        }
+    }
+
+    private fun onSurfaceReady(emitter: ObservableEmitter<Boolean>) {
+        if (!emitter.isDisposed) {
+            if (!checkPermission()) {
+                emitter.onError(SecurityException("Permission Denial: Camera"))
+            } else {
+                try {
+                    setCameraSettings()
+                } catch (e: Exception) {
+                    emitter.onError(e)
+                }
+            }
+        }
+
+        if (drawOverlay != null) {
+            drawOverlayOnSurface()
+
+            if (overlayDisposable == null || overlayDisposable!!.isDisposed) {
+                startOverlay()
+            }
+        }
+
+        if (!emitter.isDisposed) {
+            emitter.onNext(true)
         }
     }
 
 
     private fun startOverlay() {
-        removeView(drawOverlay as View)
-        addView(drawOverlay as View, FrameLayout.LayoutParams(cameraView.width, cameraView.height))
-
         overlayDisposable = overlaySubject
                 .observeOn(AndroidSchedulers.mainThread())
                 .filter { drawOverlay != null }
@@ -183,6 +195,13 @@ class BarcodeView : FrameLayout {
                         {
                             drawOverlay?.onUpdate()
                         })
+    }
+
+    private fun drawOverlayOnSurface() {
+        cameraView.post {
+            removeView(drawOverlay as View)
+            addView(drawOverlay as View, FrameLayout.LayoutParams(cameraView.width, cameraView.height))
+        }
     }
 
     private fun setCameraSettings() {
