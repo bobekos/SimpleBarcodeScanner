@@ -72,7 +72,6 @@ class BarcodeView : FrameLayout {
     fun getObservable(): Observable<Barcode> {
         return getSurfaceObservable()
                 .flatMap { BarcodeScanner(context, cameraView.holder, config, it).getObservable() }
-                .subscribeOn(Schedulers.io())
     }
 
     fun setPreviewSize(width: Int, height: Int): BarcodeView {
@@ -139,7 +138,7 @@ class BarcodeView : FrameLayout {
             if (cameraView.holder.surface.isValid && !emitter.isDisposed) {
                 onSurfaceReady(emitter)
             }
-        }
+        }.subscribeOn(Schedulers.io())
     }
 
     private fun onSurfaceReady(emitter: ObservableEmitter<Boolean>) {
