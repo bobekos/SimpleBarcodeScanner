@@ -12,6 +12,7 @@ import com.google.android.gms.vision.barcode.Barcode
 import com.google.android.gms.vision.barcode.BarcodeDetector
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
+import io.reactivex.schedulers.Schedulers
 
 
 internal class BarcodeScanner(
@@ -51,7 +52,7 @@ internal class BarcodeScanner(
                     }
                 }
             }
-        }
+        }.subscribeOn(Schedulers.io())
     }
 
     inner class BarcodeTracker(private val subscriber: ObservableEmitter<Barcode>) : Tracker<Barcode>() {
