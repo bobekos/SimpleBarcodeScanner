@@ -74,30 +74,56 @@ class BarcodeView : FrameLayout {
                 .flatMap { BarcodeScanner(context, cameraView.holder, config, it).getObservable() }
     }
 
+    /**
+     * Set the preview size for the camera source.
+     * The given size is calculated to the closet value from camera available sizes.
+     * @param width default value is 640
+     * @param height default value is 480
+     */
     fun setPreviewSize(width: Int, height: Int): BarcodeView {
         config.previewSize = Size(width, height)
 
         return this
     }
 
+    /**
+     * Enable autofocus.
+     * @param enabled Default value is true
+     */
     fun setAutoFocus(enabled: Boolean): BarcodeView {
         config.isAutoFocus = enabled
 
         return this
     }
 
+    /**
+     * Set which barcode format should be detected.
+     * @param formats Default value is Barcode.ALL_FORMATS
+     * @see Barcode
+     */
     fun setBarcodeFormats(vararg formats: Int): BarcodeView {
         config.barcodeFormat = formats.sum()
 
         return this
     }
 
+    /**
+     * Set camera facing.
+     * @param facing Default value is CameraSource.CAMERA_FACING_BACK
+     * @see com.google.android.gms.vision.CameraSource
+     */
     fun setFacing(facing: Int): BarcodeView {
         config.facing = facing
 
         return this
     }
 
+    /**
+     * Draw a overlay view over the detected barcode.
+     * For custom view visit the github documentation.
+     * @param overlay Default overlay is a white rect
+     * @see <a href="https://github.com/bobekos/SimpleBarcodeScanner#custom-overlay">Custom overlay</a>
+     */
     fun drawOverlay(overlay: BarcodeOverlay? = BarcodeRectOverlay(context)): BarcodeView {
         drawOverlay = overlay
         config.drawOverLay = true
@@ -105,6 +131,10 @@ class BarcodeView : FrameLayout {
         return this
     }
 
+    /**
+     * Enable camera flash.
+     * @param enabled Default value is false
+     */
     fun setFlash(enabled: Boolean): BarcodeView {
         config.useFlash = enabled
 
