@@ -9,7 +9,7 @@ Barcode Scanner by Google Mobile Vision Api with RxJava
 The first step is to include SimpleBarcodeScanner into your project, as a Gradle dependency:
 
 ```
-implementation 'com.github.bobekos:SimpleBarcodeScanner:1.0.11'
+implementation 'com.github.bobekos:SimpleBarcodeScanner:1.0.12'
 ```
 
 ## Usage
