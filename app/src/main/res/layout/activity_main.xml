@@ -3,9 +3,16 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/btn"
+        android:text="Switch Flash"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <com.bobekos.bobek.scanner.BarcodeView
         android:id="@+id/barcodeView"

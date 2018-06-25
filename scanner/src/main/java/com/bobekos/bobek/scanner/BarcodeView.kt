@@ -28,17 +28,17 @@ import io.reactivex.subjects.PublishSubject
 
 class BarcodeView : FrameLayout {
 
-    private var overlayDisposable: Disposable? = null
-
-    private var drawOverlay: BarcodeOverlay? = null
-
-    private val config by lazy {
-        BarcodeScannerConfig()
-    }
-
     companion object {
         internal val overlaySubject: PublishSubject<Optional<Barcode>> = PublishSubject.create<Optional<Barcode>>()
     }
+
+    private var drawOverlay: BarcodeOverlay? = null
+
+    private var overlayDisposable: Disposable? = null
+
+    private val config = BarcodeScannerConfig()
+
+    private val cameraView = SurfaceView(context)
 
     private val xScaleFactor by lazy {
         cameraView.width.toFloat().div(Math.min(config.previewSize.width, config.previewSize.height))
@@ -48,8 +48,8 @@ class BarcodeView : FrameLayout {
         cameraView.height.toFloat().div(Math.max(config.previewSize.width, config.previewSize.height))
     }
 
-    private val cameraView by lazy {
-        SurfaceView(context)
+    private val barcodeScanner by lazy {
+        BarcodeScanner(context, cameraView.holder, config)
     }
 
     constructor(context: Context?) : super(context) {
@@ -71,7 +71,7 @@ class BarcodeView : FrameLayout {
     //region public
     fun getObservable(): Observable<Barcode> {
         return getSurfaceObservable()
-                .flatMap { BarcodeScanner(context, cameraView.holder, config, it).getObservable() }
+                .flatMap { barcodeScanner.getObservable(it) }
     }
 
     /**
@@ -137,6 +137,8 @@ class BarcodeView : FrameLayout {
      */
     fun setFlash(enabled: Boolean): BarcodeView {
         config.useFlash = enabled
+
+        BarcodeScanner.updateSubject.onNext(true)
 
         return this
     }
