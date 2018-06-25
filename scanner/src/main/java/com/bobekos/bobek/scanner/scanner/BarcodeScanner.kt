@@ -12,14 +12,15 @@ import com.google.android.gms.vision.barcode.Barcode
 import com.google.android.gms.vision.barcode.BarcodeDetector
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import io.reactivex.subjects.PublishSubject
 
 
 internal class BarcodeScanner(
         private val context: Context?,
         private val holder: SurfaceHolder,
-        private val config: BarcodeScannerConfig,
-        private val holderAvailable: Boolean) {
+        private val config: BarcodeScannerConfig) {
 
     private val barcodeDetector by lazy {
         BarcodeDetector.Builder(context)
@@ -28,11 +29,17 @@ internal class BarcodeScanner(
     }
 
     private val camera by lazy {
-        Camera(context, barcodeDetector, config)
+        Camera(context, config)
     }
 
+    companion object {
+        val updateSubject: PublishSubject<Boolean> = PublishSubject.create<Boolean>()
+    }
+
+    private var updateDisposable: Disposable? = null
+
     @SuppressLint("MissingPermission")
-    fun getObservable(): Observable<Barcode> {
+    fun getObservable(holderAvailable: Boolean): Observable<Barcode> {
         return Observable.create<Barcode> { emitter ->
             if (!holderAvailable) {
                 emitter.onComplete()
@@ -40,7 +47,7 @@ internal class BarcodeScanner(
                 if (context == null && !emitter.isDisposed) {
                     emitter.onError(NullPointerException("Context is null"))
                 } else {
-                    camera.getCameraSource().start(holder)
+                    camera.init(barcodeDetector).getCameraSource()?.start(holder)
                     camera.setParametersFromConfig()
 
                     val tracker = BarcodeTracker(emitter)
@@ -48,7 +55,12 @@ internal class BarcodeScanner(
                     barcodeDetector.setProcessor(processor)
 
                     emitter.setCancellable {
-                        camera.getCameraSource().release()
+                        updateDisposable?.dispose()
+                        camera.getCameraSource()?.release()
+                    }
+
+                    updateDisposable = updateSubject.subscribe {
+                        camera.setParametersFromConfig()
                     }
                 }
             }
