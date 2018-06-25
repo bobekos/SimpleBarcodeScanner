@@ -28,17 +28,17 @@ import io.reactivex.subjects.PublishSubject
 
 class BarcodeView : FrameLayout {
 
-    private var overlayDisposable: Disposable? = null
-
-    private var drawOverlay: BarcodeOverlay? = null
-
-    private val config by lazy {
-        BarcodeScannerConfig()
-    }
-
     companion object {
         internal val overlaySubject: PublishSubject<Optional<Barcode>> = PublishSubject.create<Optional<Barcode>>()
     }
+
+    private var drawOverlay: BarcodeOverlay? = null
+
+    private var overlayDisposable: Disposable? = null
+
+    private val config = BarcodeScannerConfig()
+
+    private val cameraView = SurfaceView(context)
 
     private val xScaleFactor by lazy {
         cameraView.width.toFloat().div(Math.min(config.previewSize.width, config.previewSize.height))
@@ -48,8 +48,8 @@ class BarcodeView : FrameLayout {
         cameraView.height.toFloat().div(Math.max(config.previewSize.width, config.previewSize.height))
     }
 
-    private val cameraView by lazy {
-        SurfaceView(context)
+    private val barcodeScanner by lazy {
+        BarcodeScanner(context, cameraView.holder, config)
     }
 
     constructor(context: Context?) : super(context) {
@@ -71,7 +71,7 @@ class BarcodeView : FrameLayout {
     //region public
     fun getObservable(): Observable<Barcode> {
         return getSurfaceObservable()
-                .flatMap { BarcodeScanner(context, cameraView.holder, config, it).getObservable() }
+                .flatMap { barcodeScanner.getObservable(it) }
     }
 
     /**
@@ -80,20 +80,16 @@ class BarcodeView : FrameLayout {
      * @param width default value is 640
      * @param height default value is 480
      */
-    fun setPreviewSize(width: Int, height: Int): BarcodeView {
+    fun setPreviewSize(width: Int, height: Int) = apply {
         config.previewSize = Size(width, height)
-
-        return this
     }
 
     /**
      * Enable autofocus.
      * @param enabled Default value is true
      */
-    fun setAutoFocus(enabled: Boolean): BarcodeView {
+    fun setAutoFocus(enabled: Boolean) = apply {
         config.isAutoFocus = enabled
-
-        return this
     }
 
     /**
@@ -101,10 +97,8 @@ class BarcodeView : FrameLayout {
      * @param formats Default value is Barcode.ALL_FORMATS
      * @see Barcode
      */
-    fun setBarcodeFormats(vararg formats: Int): BarcodeView {
+    fun setBarcodeFormats(vararg formats: Int) = apply {
         config.barcodeFormat = formats.sum()
-
-        return this
     }
 
     /**
@@ -112,10 +106,8 @@ class BarcodeView : FrameLayout {
      * @param facing Default value is CameraSource.CAMERA_FACING_BACK
      * @see com.google.android.gms.vision.CameraSource
      */
-    fun setFacing(facing: Int): BarcodeView {
+    fun setFacing(facing: Int) = apply {
         config.facing = facing
-
-        return this
     }
 
     /**
@@ -124,21 +116,20 @@ class BarcodeView : FrameLayout {
      * @param overlay Default overlay is a white rect
      * @see <a href="https://github.com/bobekos/SimpleBarcodeScanner#custom-overlay">Custom overlay</a>
      */
-    fun drawOverlay(overlay: BarcodeOverlay? = BarcodeRectOverlay(context)): BarcodeView {
+    fun drawOverlay(overlay: BarcodeOverlay? = BarcodeRectOverlay(context)) = apply {
         drawOverlay = overlay
         config.drawOverLay = true
-
-        return this
     }
 
     /**
      * Enable camera flash.
+     * Also changeable after the subscription
      * @param enabled Default value is false
      */
-    fun setFlash(enabled: Boolean): BarcodeView {
+    fun setFlash(enabled: Boolean) = apply {
         config.useFlash = enabled
 
-        return this
+        BarcodeScanner.updateSubject.onNext(true)
     }
     //endregion
 

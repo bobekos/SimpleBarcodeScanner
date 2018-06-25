@@ -6,7 +6,7 @@ import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.barcode.BarcodeDetector
 
 
-internal class Camera(ctx: Context?, detector: BarcodeDetector, private val config: BarcodeScannerConfig) {
+internal class Camera(private val ctx: Context?, private val config: BarcodeScannerConfig) {
 
     companion object {
         fun getCameraIdByFacing(facing: Int): Int {
@@ -21,7 +21,7 @@ internal class Camera(ctx: Context?, detector: BarcodeDetector, private val conf
             return -1
         }
 
-        fun getValidPreviewSize(cameraId: Int, width:Int, height: Int, defaultSize: Size): Size {
+        fun getValidPreviewSize(cameraId: Int, width: Int, height: Int, defaultSize: Size): Size {
             val camera = Camera.open(cameraId)
             val supportedPreviewSize = camera.parameters.supportedPreviewSizes
 
@@ -47,11 +47,15 @@ internal class Camera(ctx: Context?, detector: BarcodeDetector, private val conf
         }
     }
 
-    private val cameraSource: CameraSource = CameraSource.Builder(ctx, detector)
-            .setFacing(config.facing)
-            .setRequestedPreviewSize(config.previewSize.width, config.previewSize.height)
-            .setAutoFocusEnabled(config.isAutoFocus)
-            .build()
+    private var cameraSource: CameraSource? = null
+
+    fun init(detector: BarcodeDetector) = apply {
+        cameraSource = CameraSource.Builder(ctx, detector)
+                .setFacing(config.facing)
+                .setRequestedPreviewSize(config.previewSize.width, config.previewSize.height)
+                .setAutoFocusEnabled(config.isAutoFocus)
+                .build()
+    }
 
     private fun get(): Camera? {
         val declaredFields = CameraSource::class.java.declaredFields
@@ -89,7 +93,7 @@ internal class Camera(ctx: Context?, detector: BarcodeDetector, private val conf
         }
     }
 
-    fun getCameraSource(): CameraSource {
+    fun getCameraSource(): CameraSource? {
         return cameraSource
     }
 
