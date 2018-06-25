@@ -20,7 +20,7 @@ allprojects {
 ```
 Add the dependency:
 
-implementation 'com.github.bobekos:SimpleBarcodeScanner:1.0.12'
+implementation 'com.github.bobekos:SimpleBarcodeScanner:1.0.13'
 ```
 
 ## Usage
