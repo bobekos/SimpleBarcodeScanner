@@ -3,16 +3,28 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
     <Button
-        android:id="@+id/btn"
-        android:text="Switch Flash"
+        android:id="@+id/btnFlash"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="Switch Flash"/>
+
+    <Button
+        android:id="@+id/btnVibrate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Turn off vibration"/>
+
+    <Button
+        android:id="@+id/btnBeep"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Turn off beep sound"/>
 
     <com.bobekos.bobek.scanner.BarcodeView
         android:id="@+id/barcodeView"
