@@ -93,7 +93,7 @@ Set the camera facing. Default value is back facing.
 .setFlash(false)
 ```
 
-Turn on the flash. Default value is false.
+Turn on the flash. Default value is false. (Also changeable after the subscription)
 
 ```
 .setAutoFocus(true)
@@ -112,6 +112,18 @@ Set preview size for the camera source. The given preview size is calculated to 
 ```
 
 Draw a overlay view over the detected barcode. Default overlay is a white rect.
+
+```
+.setBeepSound(true)
+```
+
+Play Beep sound at barcode detection. Default value is true. (Also changeable after the subscription)
+
+```
+.setVibration(500L)
+```
+
+Vibrate at barcode detection. Default value is 500ms. (Also changeable after the subscription)
 
 ### Advanced Options
 
