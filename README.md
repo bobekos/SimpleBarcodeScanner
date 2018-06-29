@@ -7,9 +7,20 @@ Barcode Scanner by Google Mobile Vision Api with RxJava
 ### Setting up the dependency
 
 The first step is to include SimpleBarcodeScanner into your project, as a Gradle dependency:
-
 ```
-implementation 'com.github.bobekos:SimpleBarcodeScanner:x.x.x'
+Add it in your root build.gradle at the end of repositories:
+
+allprojects {
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
+	}
+}
+```
+```
+Add the dependency:
+
+implementation 'com.github.bobekos:SimpleBarcodeScanner:1.0.13'
 ```
 
 ## Usage
@@ -214,4 +225,4 @@ But to avoid memory leaks you should always dispose your subscription.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the Apache License 2.0 - see the [LICENSE.md](LICENSE.md) file for details
