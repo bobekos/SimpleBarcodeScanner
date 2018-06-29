@@ -17,10 +17,11 @@ allprojects {
 	}
 }
 ```
+[![](https://jitpack.io/v/bobekos/SimpleBarcodeScanner.svg)](https://jitpack.io/#bobekos/SimpleBarcodeScanner)
 ```
 Add the dependency:
 
-implementation 'com.github.bobekos:SimpleBarcodeScanner:1.0.13'
+implementation 'com.github.bobekos:SimpleBarcodeScanner:x.x.xx'
 ```
 
 ## Usage
