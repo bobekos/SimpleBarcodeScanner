@@ -69,6 +69,7 @@ internal class BarcodeScanner(
 
     inner class BarcodeTracker(private val subscriber: ObservableEmitter<Barcode>) : Tracker<Barcode>() {
 
+        @SuppressLint("MissingPermission")
         override fun onNewItem(id: Int, barcode: Barcode?) {
             if (barcode != null) {
                 if (config.drawOverLay) {
@@ -77,6 +78,14 @@ internal class BarcodeScanner(
 
                 if (!subscriber.isDisposed) {
                     subscriber.onNext(barcode)
+
+                    if (config.playBeep) {
+                        DetectionHelper.playBeepSound()
+                    }
+
+                    if (config.vibrateDuration > 0) {
+                        DetectionHelper.vibrate(context, config.vibrateDuration)
+                    }
                 }
             }
         }

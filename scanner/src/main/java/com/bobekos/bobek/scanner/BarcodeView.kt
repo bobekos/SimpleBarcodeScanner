@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Rect
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.support.v4.app.ActivityCompat
 import android.util.AttributeSet
 import android.view.SurfaceHolder
@@ -130,6 +132,24 @@ class BarcodeView : FrameLayout {
         config.useFlash = enabled
 
         BarcodeScanner.updateSubject.onNext(true)
+    }
+
+    /**
+     * Play beep sound at detection
+     * Also changeable after the subscription
+     * @param play Default value is true
+     */
+    fun setBeepSound(play: Boolean = true) = apply {
+        config.playBeep = play
+    }
+
+    /**
+     * Vibrate at detection
+     * Also changeable after the subscription
+     * @param duration Default value is 500ms (0 = disable)
+     */
+    fun setVibration(duration: Long = 500) = apply {
+        config.vibrateDuration = duration
     }
     //endregion
 

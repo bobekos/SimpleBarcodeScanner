@@ -10,5 +10,7 @@ internal data class BarcodeScannerConfig(
         var useFlash: Boolean = false,
         var facing: Int = CameraSource.CAMERA_FACING_BACK,
         var previewSize: Size = Size(640, 480),
-        var barcodeFormat: Int = Barcode.ALL_FORMATS
+        var barcodeFormat: Int = Barcode.ALL_FORMATS,
+        var playBeep: Boolean = false,
+        var vibrateDuration: Long = 0
 )
