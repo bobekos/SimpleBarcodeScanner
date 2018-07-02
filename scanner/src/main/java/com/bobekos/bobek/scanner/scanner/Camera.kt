@@ -21,7 +21,7 @@ internal class Camera(private val ctx: Context?, private val config: BarcodeScan
             return -1
         }
 
-        fun getValidPreviewSize(cameraId: Int, width: Int, height: Int, defaultSize: Size): Size {
+        fun getValidPreviewSize(cameraId: Int, defaultSize: Size): Size {
             val camera = Camera.open(cameraId)
             val supportedPreviewSize = camera.parameters.supportedPreviewSizes
 
@@ -29,8 +29,8 @@ internal class Camera(private val ctx: Context?, private val config: BarcodeScan
             var minDiff = Int.MAX_VALUE
 
             supportedPreviewSize.forEach {
-                val diff = Math.abs(it.width - width) +
-                        Math.abs(it.height - height)
+                val diff = Math.abs(it.width - defaultSize.width) +
+                        Math.abs(it.height - defaultSize.height)
                 if (diff < minDiff) {
                     result = Size(it.width, it.height)
                     minDiff = diff

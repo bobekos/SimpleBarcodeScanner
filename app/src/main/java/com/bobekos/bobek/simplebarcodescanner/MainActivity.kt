@@ -56,7 +56,6 @@ class MainActivity : AppCompatActivity() {
                 .setAutoFocus(true)
                 .setFlash(isFlashOn)
                 .setFacing(CameraSource.CAMERA_FACING_BACK)
-                .setPreviewSize(640, 480)
                 .getObservable()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(

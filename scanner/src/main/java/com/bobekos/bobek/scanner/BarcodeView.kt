@@ -3,14 +3,13 @@ package com.bobekos.bobek.scanner
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.graphics.Color
 import android.graphics.Rect
-import android.media.AudioManager
-import android.media.ToneGenerator
 import android.support.v4.app.ActivityCompat
 import android.util.AttributeSet
-import android.view.SurfaceHolder
-import android.view.SurfaceView
-import android.view.View
+import android.util.DisplayMetrics
+import android.view.*
 import android.widget.FrameLayout
 import com.bobekos.bobek.scanner.overlay.BarcodeOverlay
 import com.bobekos.bobek.scanner.overlay.BarcodeRectOverlay
@@ -38,7 +37,9 @@ class BarcodeView : FrameLayout {
 
     private var overlayDisposable: Disposable? = null
 
-    private val config = BarcodeScannerConfig()
+    private val config by lazy {
+        BarcodeScannerConfig(previewSize = getDisplayMetrics())
+    }
 
     private val cameraView = SurfaceView(context)
 
@@ -67,7 +68,8 @@ class BarcodeView : FrameLayout {
     }
 
     private fun init() {
-        addView(cameraView)
+        setBackgroundColor(Color.BLACK)
+        addView(cameraView, getPreviewParams())
     }
 
     //region public
@@ -193,6 +195,8 @@ class BarcodeView : FrameLayout {
                     emitter.onError(e)
                 }
             }
+
+            setLayoutBasedOnPreviewSize()
         }
 
         if (drawOverlay != null) {
@@ -208,6 +212,37 @@ class BarcodeView : FrameLayout {
         }
     }
 
+    private fun setLayoutBasedOnPreviewSize() {
+        var previewWidth = config.previewSize.width
+        var previewHeight = config.previewSize.height
+
+        // Swap width and height sizes when in portrait, since it will be rotated 90 degrees
+        if (isPortraitMode()) {
+            val tmp = previewWidth
+
+            previewWidth = previewHeight
+            previewHeight = tmp
+        }
+
+        val parentWidth = right - left
+        val parentHeight = bottom - top
+
+        val surfaceWidthRatio = parentWidth.toFloat() / previewWidth.toFloat()
+        val surfaceHeightRatio = parentHeight.toFloat() / previewHeight.toFloat()
+
+        val surfaceWidth: Int
+        val surfaceHeight: Int
+
+        if (surfaceWidthRatio > surfaceHeightRatio) {
+            surfaceWidth = parentWidth
+            surfaceHeight = (previewHeight * surfaceWidthRatio).toInt()
+        } else {
+            surfaceWidth = (previewWidth * surfaceHeightRatio).toInt()
+            surfaceHeight = parentHeight
+        }
+
+        cameraView.layoutParams = getPreviewParams(surfaceWidth, surfaceHeight)
+    }
 
     private fun startOverlay() {
         overlayDisposable = overlaySubject
@@ -240,7 +275,7 @@ class BarcodeView : FrameLayout {
     private fun drawOverlayOnSurface() {
         cameraView.post {
             removeView(drawOverlay as View)
-            addView(drawOverlay as View, FrameLayout.LayoutParams(cameraView.width, cameraView.height))
+            addView(drawOverlay as View, getPreviewParams(cameraView.width, cameraView.height))
         }
     }
 
@@ -248,7 +283,7 @@ class BarcodeView : FrameLayout {
         val cameraId = Camera.getCameraIdByFacing(config.facing)
         if (cameraId != -1) {
             try {
-                config.previewSize = Camera.getValidPreviewSize(cameraId, cameraView.width, cameraView.height, config.previewSize)
+                config.previewSize = Camera.getValidPreviewSize(cameraId, config.previewSize)
             } catch (e: RuntimeException) {
                 throw e
             }
@@ -279,6 +314,28 @@ class BarcodeView : FrameLayout {
 
     private fun translateY(y: Int): Int {
         return (y * yScaleFactor).toInt()
+    }
+
+    private fun isPortraitMode(): Boolean {
+        return context.resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE
+    }
+
+    private fun getPreviewParams(
+            w: Int = LayoutParams.MATCH_PARENT,
+            h: Int = LayoutParams.MATCH_PARENT,
+            gravity: Int = Gravity.CENTER): LayoutParams {
+
+        return FrameLayout.LayoutParams(w, h).apply {
+            this.gravity = gravity
+        }
+    }
+
+    private fun getDisplayMetrics(): Size {
+        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val result = DisplayMetrics()
+        wm.defaultDisplay.getMetrics(result)
+
+        return Size(result.widthPixels, result.heightPixels)
     }
     //endregion
 }
