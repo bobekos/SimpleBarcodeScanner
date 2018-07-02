@@ -10,21 +10,9 @@
 
     <Button
         android:id="@+id/btnFlash"
+        android:layout_margin="50dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Switch Flash"/>
-
-    <Button
-        android:id="@+id/btnVibrate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Turn off vibration"/>
-
-    <Button
-        android:id="@+id/btnBeep"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Turn off beep sound"/>
+        android:layout_height="wrap_content"/>
 
     <com.bobekos.bobek.scanner.BarcodeView
         android:id="@+id/barcodeView"
