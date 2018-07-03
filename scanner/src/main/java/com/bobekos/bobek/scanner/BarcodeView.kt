@@ -43,12 +43,20 @@ class BarcodeView : FrameLayout {
 
     private val cameraView = SurfaceView(context)
 
-    private val xScaleFactor by lazy {
+    private val xScaleFactorP by lazy {
         cameraView.width.toFloat().div(Math.min(config.previewSize.width, config.previewSize.height))
     }
 
-    private val yScaleFactor by lazy {
+    private val xScaleFactorL by lazy {
+        cameraView.width.toFloat().div(Math.max(config.previewSize.width, config.previewSize.height))
+    }
+
+    private val yScaleFactorP by lazy {
         cameraView.height.toFloat().div(Math.max(config.previewSize.width, config.previewSize.height))
+    }
+
+    private val yScaleFactorL by lazy {
+        cameraView.height.toFloat().div(Math.min(config.previewSize.width, config.previewSize.height))
     }
 
     private val barcodeScanner by lazy {
@@ -275,7 +283,15 @@ class BarcodeView : FrameLayout {
     private fun drawOverlayOnSurface() {
         cameraView.post {
             removeView(drawOverlay as View)
-            addView(drawOverlay as View, getPreviewParams(cameraView.width, cameraView.height))
+
+            var h = cameraView.height
+            var w = cameraView.width
+            if (isPortraitMode()) {
+                h = cameraView.width
+                w = cameraView.height
+            }
+
+            addView(drawOverlay as View, getPreviewParams(h, w))
         }
     }
 
@@ -309,11 +325,11 @@ class BarcodeView : FrameLayout {
     }
 
     private fun translateX(x: Int): Int {
-        return (x * xScaleFactor).toInt()
+        return (x * if (isPortraitMode()) xScaleFactorP else xScaleFactorL).toInt()
     }
 
     private fun translateY(y: Int): Int {
-        return (y * yScaleFactor).toInt()
+        return (y * if (isPortraitMode()) yScaleFactorP else yScaleFactorL).toInt()
     }
 
     private fun isPortraitMode(): Boolean {
@@ -322,12 +338,9 @@ class BarcodeView : FrameLayout {
 
     private fun getPreviewParams(
             w: Int = LayoutParams.MATCH_PARENT,
-            h: Int = LayoutParams.MATCH_PARENT,
-            gravity: Int = Gravity.CENTER): LayoutParams {
+            h: Int = LayoutParams.MATCH_PARENT): LayoutParams {
 
-        return FrameLayout.LayoutParams(w, h).apply {
-            this.gravity = gravity
-        }
+        return FrameLayout.LayoutParams(w, h)
     }
 
     private fun getDisplayMetrics(): Size {
