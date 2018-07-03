@@ -89,8 +89,8 @@ class BarcodeView : FrameLayout {
     /**
      * Set the preview size for the camera source.
      * The given size is calculated to the closet value from camera available sizes.
-     * @param width default value is 640
-     * @param height default value is 480
+     * @param width default value is display width
+     * @param height default value is display height
      */
     fun setPreviewSize(width: Int, height: Int) = apply {
         config.previewSize = Size(width, height)
