@@ -103,10 +103,10 @@ Turn on the flash. Default value is false. (Also changeable after the subscripti
 Enable autofocus. Default value is true.
 
 ```
-.setPreviewSize(640, 480)
+.setPreviewSize(width, height)
 ```
 
-Set preview size for the camera source. The given preview size is calculated to the closet value from camera available sizes.
+Set preview size for the camera source. The given preview size is calculated to the closet value from camera available sizes. Default values are the display dimensions.
 
 ```
 .drawOverlay()
