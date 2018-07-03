@@ -269,10 +269,6 @@ class BarcodeView : FrameLayout {
                                         overlay.onUpdate()
                                     }
                                 }
-
-                                if (Camera.isFacingFront(config.facing) && overlay is View) {
-                                    (overlay as View).scaleX = -1f
-                                }
                             }
                         },
                         {
@@ -325,7 +321,13 @@ class BarcodeView : FrameLayout {
     }
 
     private fun translateX(x: Int): Int {
-        return (x * if (isPortraitMode()) xScaleFactorP else xScaleFactorL).toInt()
+        var result = (x * if (isPortraitMode()) xScaleFactorP else xScaleFactorL).toInt()
+
+        if (Camera.isFacingFront(config.facing)) {
+            result = cameraView.width - result
+        }
+
+        return result
     }
 
     private fun translateY(y: Int): Int {
