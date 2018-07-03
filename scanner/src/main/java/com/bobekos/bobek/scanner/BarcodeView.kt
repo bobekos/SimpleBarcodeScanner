@@ -3,14 +3,13 @@ package com.bobekos.bobek.scanner
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.graphics.Color
 import android.graphics.Rect
-import android.media.AudioManager
-import android.media.ToneGenerator
 import android.support.v4.app.ActivityCompat
 import android.util.AttributeSet
-import android.view.SurfaceHolder
-import android.view.SurfaceView
-import android.view.View
+import android.util.DisplayMetrics
+import android.view.*
 import android.widget.FrameLayout
 import com.bobekos.bobek.scanner.overlay.BarcodeOverlay
 import com.bobekos.bobek.scanner.overlay.BarcodeRectOverlay
@@ -38,16 +37,26 @@ class BarcodeView : FrameLayout {
 
     private var overlayDisposable: Disposable? = null
 
-    private val config = BarcodeScannerConfig()
+    private val config by lazy {
+        BarcodeScannerConfig(previewSize = getDisplayMetrics())
+    }
 
     private val cameraView = SurfaceView(context)
 
-    private val xScaleFactor by lazy {
+    private val xScaleFactorP by lazy {
         cameraView.width.toFloat().div(Math.min(config.previewSize.width, config.previewSize.height))
     }
 
-    private val yScaleFactor by lazy {
+    private val xScaleFactorL by lazy {
+        cameraView.width.toFloat().div(Math.max(config.previewSize.width, config.previewSize.height))
+    }
+
+    private val yScaleFactorP by lazy {
         cameraView.height.toFloat().div(Math.max(config.previewSize.width, config.previewSize.height))
+    }
+
+    private val yScaleFactorL by lazy {
+        cameraView.height.toFloat().div(Math.min(config.previewSize.width, config.previewSize.height))
     }
 
     private val barcodeScanner by lazy {
@@ -67,7 +76,8 @@ class BarcodeView : FrameLayout {
     }
 
     private fun init() {
-        addView(cameraView)
+        setBackgroundColor(Color.BLACK)
+        addView(cameraView, getPreviewParams())
     }
 
     //region public
@@ -79,8 +89,8 @@ class BarcodeView : FrameLayout {
     /**
      * Set the preview size for the camera source.
      * The given size is calculated to the closet value from camera available sizes.
-     * @param width default value is 640
-     * @param height default value is 480
+     * @param width default value is display width
+     * @param height default value is display height
      */
     fun setPreviewSize(width: Int, height: Int) = apply {
         config.previewSize = Size(width, height)
@@ -193,6 +203,8 @@ class BarcodeView : FrameLayout {
                     emitter.onError(e)
                 }
             }
+
+            setLayoutBasedOnPreviewSize()
         }
 
         if (drawOverlay != null) {
@@ -208,6 +220,37 @@ class BarcodeView : FrameLayout {
         }
     }
 
+    private fun setLayoutBasedOnPreviewSize() {
+        var previewWidth = config.previewSize.width
+        var previewHeight = config.previewSize.height
+
+        // Swap width and height sizes when in portrait, since it will be rotated 90 degrees
+        if (isPortraitMode()) {
+            val tmp = previewWidth
+
+            previewWidth = previewHeight
+            previewHeight = tmp
+        }
+
+        val parentWidth = right - left
+        val parentHeight = bottom - top
+
+        val surfaceWidthRatio = parentWidth.toFloat() / previewWidth.toFloat()
+        val surfaceHeightRatio = parentHeight.toFloat() / previewHeight.toFloat()
+
+        val surfaceWidth: Int
+        val surfaceHeight: Int
+
+        if (surfaceWidthRatio > surfaceHeightRatio) {
+            surfaceWidth = parentWidth
+            surfaceHeight = (previewHeight * surfaceWidthRatio).toInt()
+        } else {
+            surfaceWidth = (previewWidth * surfaceHeightRatio).toInt()
+            surfaceHeight = parentHeight
+        }
+
+        cameraView.layoutParams = getPreviewParams(surfaceWidth, surfaceHeight)
+    }
 
     private fun startOverlay() {
         overlayDisposable = overlaySubject
@@ -226,10 +269,6 @@ class BarcodeView : FrameLayout {
                                         overlay.onUpdate()
                                     }
                                 }
-
-                                if (Camera.isFacingFront(config.facing) && overlay is View) {
-                                    (overlay as View).scaleX = -1f
-                                }
                             }
                         },
                         {
@@ -240,7 +279,15 @@ class BarcodeView : FrameLayout {
     private fun drawOverlayOnSurface() {
         cameraView.post {
             removeView(drawOverlay as View)
-            addView(drawOverlay as View, FrameLayout.LayoutParams(cameraView.width, cameraView.height))
+
+            var h = cameraView.height
+            var w = cameraView.width
+            if (isPortraitMode()) {
+                h = cameraView.width
+                w = cameraView.height
+            }
+
+            addView(drawOverlay as View, getPreviewParams(h, w))
         }
     }
 
@@ -248,7 +295,7 @@ class BarcodeView : FrameLayout {
         val cameraId = Camera.getCameraIdByFacing(config.facing)
         if (cameraId != -1) {
             try {
-                config.previewSize = Camera.getValidPreviewSize(cameraId, cameraView.width, cameraView.height, config.previewSize)
+                config.previewSize = Camera.getValidPreviewSize(cameraId, config.previewSize)
             } catch (e: RuntimeException) {
                 throw e
             }
@@ -274,11 +321,36 @@ class BarcodeView : FrameLayout {
     }
 
     private fun translateX(x: Int): Int {
-        return (x * xScaleFactor).toInt()
+        var result = (x * if (isPortraitMode()) xScaleFactorP else xScaleFactorL).toInt()
+
+        if (Camera.isFacingFront(config.facing)) {
+            result = cameraView.width - result
+        }
+
+        return result
     }
 
     private fun translateY(y: Int): Int {
-        return (y * yScaleFactor).toInt()
+        return (y * if (isPortraitMode()) yScaleFactorP else yScaleFactorL).toInt()
+    }
+
+    private fun isPortraitMode(): Boolean {
+        return context.resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE
+    }
+
+    private fun getPreviewParams(
+            w: Int = LayoutParams.MATCH_PARENT,
+            h: Int = LayoutParams.MATCH_PARENT): LayoutParams {
+
+        return FrameLayout.LayoutParams(w, h)
+    }
+
+    private fun getDisplayMetrics(): Size {
+        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val result = DisplayMetrics()
+        wm.defaultDisplay.getMetrics(result)
+
+        return Size(result.widthPixels, result.heightPixels)
     }
     //endregion
 }
