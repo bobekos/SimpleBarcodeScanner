@@ -189,7 +189,7 @@ class BarcodeView : FrameLayout {
             if (cameraView.holder.surface.isValid && !emitter.isDisposed) {
                 onSurfaceReady(emitter)
             }
-        }.subscribeOn(Schedulers.io())
+        }.subscribeOn(AndroidSchedulers.mainThread()).observeOn(Schedulers.io())
     }
 
     private fun onSurfaceReady(emitter: ObservableEmitter<Boolean>) {
@@ -254,8 +254,8 @@ class BarcodeView : FrameLayout {
 
     private fun startOverlay() {
         overlayDisposable = overlaySubject
-                .observeOn(AndroidSchedulers.mainThread())
                 .filter { drawOverlay != null }
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         { result ->
                             drawOverlay?.let { overlay ->
