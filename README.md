@@ -17,10 +17,11 @@ allprojects {
 	}
 }
 ```
+[![](https://jitpack.io/v/bobekos/SimpleBarcodeScanner.svg)](https://jitpack.io/#bobekos/SimpleBarcodeScanner)
 ```
 Add the dependency:
 
-implementation 'com.github.bobekos:SimpleBarcodeScanner:1.0.13'
+implementation 'com.github.bobekos:SimpleBarcodeScanner:x.x.xx'
 ```
 
 ## Usage
@@ -93,7 +94,7 @@ Set the camera facing. Default value is back facing.
 .setFlash(false)
 ```
 
-Turn on the flash. Default value is false.
+Turn on the flash. Default value is false. (Also changeable after the subscription)
 
 ```
 .setAutoFocus(true)
@@ -102,16 +103,28 @@ Turn on the flash. Default value is false.
 Enable autofocus. Default value is true.
 
 ```
-.setPreviewSize(640, 480)
+.setPreviewSize(width, height)
 ```
 
-Set preview size for the camera source. The given preview size is calculated to the closet value from camera available sizes.
+Set preview size for the camera source. The given preview size is calculated to the closet value from camera available sizes. Default values are the display dimensions.
 
 ```
 .drawOverlay()
 ```
 
 Draw a overlay view over the detected barcode. Default overlay is a white rect.
+
+```
+.setBeepSound(true)
+```
+
+Play Beep sound at barcode detection. Default value is true. (Also changeable after the subscription)
+
+```
+.setVibration(500L)
+```
+
+Vibrate at barcode detection. Default value is 500ms. (Also changeable after the subscription)
 
 ### Advanced Options
 
