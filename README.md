@@ -1,4 +1,4 @@
-# SimpleBarcodeScanner
+# SimpleBarcodeScanner [![Android Arsenal]( https://img.shields.io/badge/Android%20Arsenal-SimpleBarcodeScanner-green.svg?style=flat )]( https://android-arsenal.com/details/1/7004 ) [![](https://img.shields.io/badge/minSdk-15-brightgreen.svg)](https://github.com/bobekos/SimpleBarcodeScanner)
 
 Barcode Scanner by Google Mobile Vision Api with RxJava
 
