@@ -13,6 +13,7 @@ import com.google.android.gms.vision.barcode.BarcodeDetector
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 
 
@@ -58,13 +59,18 @@ internal class BarcodeScanner(
                         camera.getCameraSource()?.release()
                     }
 
-                    updateDisposable = updateSubject.subscribe(
-                            {
-                                camera.setParametersFromConfig()
-                            }, {})
+                    updateDisposable = updateSubject.subscribe({ camera.setParametersFromConfig() }, {})
                 }
             }
-        }
+        }.doOnNext {
+            if (config.playBeep) {
+                DetectionHelper.playBeepSound()
+            }
+
+            if (config.vibrateDuration > 0) {
+                DetectionHelper.vibrate(context, config.vibrateDuration)
+            }
+        }.subscribeOn(Schedulers.io())
     }
 
     inner class BarcodeTracker(private val subscriber: ObservableEmitter<Barcode>) : Tracker<Barcode>() {
@@ -78,14 +84,6 @@ internal class BarcodeScanner(
 
                 if (!subscriber.isDisposed) {
                     subscriber.onNext(barcode)
-
-                    if (config.playBeep) {
-                        DetectionHelper.playBeepSound()
-                    }
-
-                    if (config.vibrateDuration > 0) {
-                        DetectionHelper.vibrate(context, config.vibrateDuration)
-                    }
                 }
             }
         }
@@ -97,7 +95,9 @@ internal class BarcodeScanner(
         }
 
         override fun onMissing(p0: Detector.Detections<Barcode>?) {
-
+            if (config.drawOverLay) {
+                BarcodeView.overlaySubject.onNext(Optional.None)
+            }
         }
 
         override fun onDone() {

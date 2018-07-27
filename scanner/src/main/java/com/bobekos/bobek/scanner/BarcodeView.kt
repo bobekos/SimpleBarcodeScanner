@@ -189,7 +189,7 @@ class BarcodeView : FrameLayout {
             if (cameraView.holder.surface.isValid && !emitter.isDisposed) {
                 onSurfaceReady(emitter)
             }
-        }.subscribeOn(AndroidSchedulers.mainThread()).observeOn(Schedulers.io())
+        }.subscribeOn(AndroidSchedulers.mainThread())
     }
 
     private fun onSurfaceReady(emitter: ObservableEmitter<Boolean>) {
