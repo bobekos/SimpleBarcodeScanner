@@ -64,18 +64,22 @@ class BarcodeView : FrameLayout {
     }
 
     constructor(context: Context?) : super(context) {
-        init()
+        init(null)
     }
 
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs) {
-        init()
+        init(attrs)
     }
 
     constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
-        init()
+        init(attrs)
     }
 
-    private fun init() {
+    private fun init(attrs: AttributeSet?) {
+        if (attrs != null) {
+            setAttributes(attrs)
+        }
+
         setBackgroundColor(Color.BLACK)
         addView(cameraView, getPreviewParams())
     }
@@ -189,7 +193,7 @@ class BarcodeView : FrameLayout {
             if (cameraView.holder.surface.isValid && !emitter.isDisposed) {
                 onSurfaceReady(emitter)
             }
-        }.subscribeOn(AndroidSchedulers.mainThread()).observeOn(Schedulers.io())
+        }.subscribeOn(AndroidSchedulers.mainThread())
     }
 
     private fun onSurfaceReady(emitter: ObservableEmitter<Boolean>) {
@@ -351,6 +355,18 @@ class BarcodeView : FrameLayout {
         wm.defaultDisplay.getMetrics(result)
 
         return Size(result.widthPixels, result.heightPixels)
+    }
+
+    private fun setAttributes(attrs: AttributeSet) {
+        val attributes = context.theme.obtainStyledAttributes(
+                attrs, R.styleable.BarcodeView, 0, 0)
+
+        config.facing = attributes.getInt(R.styleable.BarcodeView_setFacing, config.facing)
+        config.useFlash = attributes.getBoolean(R.styleable.BarcodeView_setFlash, config.useFlash)
+        config.playBeep = attributes.getBoolean(R.styleable.BarcodeView_setBeepSound, config.playBeep)
+        config.isAutoFocus = attributes.getBoolean(R.styleable.BarcodeView_setAutoFocus, config.isAutoFocus)
+        config.barcodeFormat = attributes.getInt(R.styleable.BarcodeView_setBarcodeFormats, config.barcodeFormat)
+        config.vibrateDuration = attributes.getInt(R.styleable.BarcodeView_setVibration, config.vibrateDuration.toInt()).toLong()
     }
     //endregion
 }

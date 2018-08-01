@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="BarcodeView">
+        <attr name="setAutoFocus" format="boolean"/>
+        <attr name="setFlash" format="boolean"/>
+        <attr name="setBeepSound" format="boolean"/>
+        <attr name="setVibration" format="integer"/>
+        <attr name="setFacing" format="enum">
+            <enum name="back" value="0"/>
+            <enum name="front" value="1"/>
+        </attr>
+        <attr name="setBarcodeFormats">
+            <flag name="all" value="0"/>
+            <flag name="code_128" value="1"/>
+            <flag name="code_39" value="2"/>
+            <flag name="code_93" value="4"/>
+            <flag name="codebar" value="8"/>
+            <flag name="data_matrix" value="16"/>
+            <flag name="ean_13" value="32"/>
+            <flag name="ean_8" value="64"/>
+            <flag name="itf" value="128"/>
+            <flag name="qr_code" value="256"/>
+            <flag name="upc_a" value="512"/>
+            <flag name="upc_e" value="1024"/>
+            <flag name="pdf417" value="2048"/>
+            <flag name="aztec" value="4096"/>
+        </attr>
+    </declare-styleable>
+</resources>
