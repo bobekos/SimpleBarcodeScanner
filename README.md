@@ -35,7 +35,7 @@ implementation 'com.github.bobekos:SimpleBarcodeScanner:x.x.xx'
         android:layout_height="match_parent"/>
 ```
 
-For all supported attributes see the list below (not supported yet)
+For all supported attributes see the list below
 
 ### Include followin code in your activity or fragment
 
@@ -80,24 +80,48 @@ class MainActivity : AppCompatActivity() {
 
 ```
 .setBarcodeFormats(Barcode.QR_CODE)
+
+//in xml
+<com.bobekos.bobek.scanner.BarcodeView
+        ...
+        custom:setBarcodeFormats="qr_code|pdf417|..."
+        />
 ```
 
 Which barcode format should be detected. Default value is all formats.
 
 ```
 .setFacing(CameraSource.CAMERA_FACING_BACK)
+
+//in xml
+<com.bobekos.bobek.scanner.BarcodeView
+        ...
+        custom:setFacing="front|back"
+        />
 ```
 
 Set the camera facing. Default value is back facing.
 
 ```
 .setFlash(false)
+
+//in xml
+<com.bobekos.bobek.scanner.BarcodeView
+        ...
+        custom:setFlash="true|false"
+        />
 ```
 
 Turn on the flash. Default value is false. (Also changeable after the subscription)
 
 ```
 .setAutoFocus(true)
+
+//in xml
+<com.bobekos.bobek.scanner.BarcodeView
+        ...
+        custom:setAutoFocus="true|false"
+        />
 ```
 
 Enable autofocus. Default value is true.
@@ -116,12 +140,24 @@ Draw a overlay view over the detected barcode. Default overlay is a white rect.
 
 ```
 .setBeepSound(true)
+
+//in xml
+<com.bobekos.bobek.scanner.BarcodeView
+        ...
+        custom:setBeepSound="true|false"
+        />
 ```
 
 Play Beep sound at barcode detection. Default value is true. (Also changeable after the subscription)
 
 ```
 .setVibration(500L)
+
+//in xml
+<com.bobekos.bobek.scanner.BarcodeView
+        ...
+        custom:setVibration="500"
+        />
 ```
 
 Vibrate at barcode detection. Default value is 500ms. (Also changeable after the subscription)
