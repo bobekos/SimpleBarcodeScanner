@@ -6,11 +6,11 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Rect
-import android.support.v4.app.ActivityCompat
 import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.view.*
 import android.widget.FrameLayout
+import androidx.core.app.ActivityCompat
 import com.bobekos.bobek.scanner.overlay.BarcodeOverlay
 import com.bobekos.bobek.scanner.overlay.BarcodeRectOverlay
 import com.bobekos.bobek.scanner.overlay.Optional
