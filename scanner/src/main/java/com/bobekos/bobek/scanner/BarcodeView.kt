@@ -9,7 +9,10 @@ import android.graphics.Rect
 import android.support.v4.app.ActivityCompat
 import android.util.AttributeSet
 import android.util.DisplayMetrics
-import android.view.*
+import android.view.SurfaceHolder
+import android.view.SurfaceView
+import android.view.View
+import android.view.WindowManager
 import android.widget.FrameLayout
 import com.bobekos.bobek.scanner.overlay.BarcodeOverlay
 import com.bobekos.bobek.scanner.overlay.BarcodeRectOverlay
@@ -23,7 +26,6 @@ import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 
 
@@ -89,6 +91,19 @@ class BarcodeView : FrameLayout {
         return getSurfaceObservable()
                 .flatMap { barcodeScanner.getObservable(it) }
     }
+
+
+    /**
+     * The first time that an app using vision API is installed on a device, GMS will
+     * download a native library to the device in order to do detection. Usually this
+     * completes before the app is run for the first time.  But if that download has not yet
+     * completed, then the above call will not detect any barcodes.
+     *
+     * This method can be used to check if the required native library is currently
+     * available.  The detector will automatically become operational once the library
+     * download completes on device.
+     */
+    fun isOperational(): Boolean = barcodeScanner.isOperational()
 
     /**
      * Set the preview size for the camera source.

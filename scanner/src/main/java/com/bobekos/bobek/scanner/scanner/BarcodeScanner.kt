@@ -73,6 +73,8 @@ internal class BarcodeScanner(
         }.subscribeOn(Schedulers.io())
     }
 
+    fun isOperational(): Boolean = barcodeDetector.isOperational
+
     inner class BarcodeTracker(private val subscriber: ObservableEmitter<Barcode>) : Tracker<Barcode>() {
 
         @SuppressLint("MissingPermission")
