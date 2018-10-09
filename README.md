@@ -1,4 +1,4 @@
-# SimpleBarcodeScanner
+# SimpleBarcodeScanner [![Android Arsenal]( https://img.shields.io/badge/Android%20Arsenal-SimpleBarcodeScanner-green.svg?style=flat )]( https://android-arsenal.com/details/1/7004 ) [![](https://img.shields.io/badge/minSdk-15-brightgreen.svg)](https://github.com/bobekos/SimpleBarcodeScanner)
 
 Barcode Scanner by Google Mobile Vision Api with RxJava
 
@@ -17,10 +17,11 @@ allprojects {
 	}
 }
 ```
+[![](https://jitpack.io/v/bobekos/SimpleBarcodeScanner.svg)](https://jitpack.io/#bobekos/SimpleBarcodeScanner)
 ```
 Add the dependency:
 
-implementation 'com.github.bobekos:SimpleBarcodeScanner:1.0.12'
+implementation 'com.github.bobekos:SimpleBarcodeScanner:x.x.xx'
 ```
 
 ## Usage
@@ -34,7 +35,7 @@ implementation 'com.github.bobekos:SimpleBarcodeScanner:1.0.12'
         android:layout_height="match_parent"/>
 ```
 
-For all supported attributes see the list below (not supported yet)
+For all supported attributes see the list below
 
 ### Include followin code in your activity or fragment
 
@@ -79,39 +80,87 @@ class MainActivity : AppCompatActivity() {
 
 ```
 .setBarcodeFormats(Barcode.QR_CODE)
+
+//in xml
+<com.bobekos.bobek.scanner.BarcodeView
+        ...
+        custom:setBarcodeFormats="qr_code|pdf417|..."
+        />
 ```
 
 Which barcode format should be detected. Default value is all formats.
 
 ```
 .setFacing(CameraSource.CAMERA_FACING_BACK)
+
+//in xml
+<com.bobekos.bobek.scanner.BarcodeView
+        ...
+        custom:setFacing="front|back"
+        />
 ```
 
 Set the camera facing. Default value is back facing.
 
 ```
 .setFlash(false)
+
+//in xml
+<com.bobekos.bobek.scanner.BarcodeView
+        ...
+        custom:setFlash="true|false"
+        />
 ```
 
-Turn on the flash. Default value is false.
+Turn on the flash. Default value is false. (Also changeable after the subscription)
 
 ```
 .setAutoFocus(true)
+
+//in xml
+<com.bobekos.bobek.scanner.BarcodeView
+        ...
+        custom:setAutoFocus="true|false"
+        />
 ```
 
 Enable autofocus. Default value is true.
 
 ```
-.setPreviewSize(640, 480)
+.setPreviewSize(width, height)
 ```
 
-Set preview size for the camera source. The given preview size is calculated to the closet value from camera available sizes.
+Set preview size for the camera source. The given preview size is calculated to the closet value from camera available sizes. Default values are the display dimensions.
 
 ```
 .drawOverlay()
 ```
 
 Draw a overlay view over the detected barcode. Default overlay is a white rect.
+
+```
+.setBeepSound(true)
+
+//in xml
+<com.bobekos.bobek.scanner.BarcodeView
+        ...
+        custom:setBeepSound="true|false"
+        />
+```
+
+Play Beep sound at barcode detection. Default value is true. (Also changeable after the subscription)
+
+```
+.setVibration(500L)
+
+//in xml
+<com.bobekos.bobek.scanner.BarcodeView
+        ...
+        custom:setVibration="500"
+        />
+```
+
+Vibrate at barcode detection. Default value is 500ms. (Also changeable after the subscription)
 
 ### Advanced Options
 
@@ -225,4 +274,16 @@ But to avoid memory leaks you should always dispose your subscription.
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE.md](LICENSE.md) file for details
+    Copyright 2018 Bobek Bobekos
+
+    Licensed under the Apache License, Version 2.0 (the "License"); 
+    you may not use this file except in compliance with the License. 
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+   
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and 
+    limitations under the License.

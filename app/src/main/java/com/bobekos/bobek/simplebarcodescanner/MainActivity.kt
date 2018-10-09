@@ -13,32 +13,49 @@ class MainActivity : AppCompatActivity() {
     private var disposable: Disposable? = null
 
     private var isFlashOn = false
+    private var isBeepOn = false
+    private var isVibrateOn = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         setBtnText()
-        btn.setOnClickListener {
+
+        btnFlash.setOnClickListener {
             isFlashOn = !isFlashOn
             barcodeView.setFlash(isFlashOn)
             setBtnText()
         }
+        btnVibrate.setOnClickListener {
+            isVibrateOn = !isVibrateOn
+            barcodeView.setVibration(if (isVibrateOn) 500 else 0)
+            setBtnText()
+        }
+        btnBeep.setOnClickListener {
+            isBeepOn = !isBeepOn
+            barcodeView.setBeepSound(isBeepOn)
+            setBtnText()
+        }
+
     }
 
     private fun setBtnText() {
-        btn.text = String.format("Turn the flashlight %s", if (isFlashOn) "off" else "on")
+        btnFlash.text = String.format("Turn the flashlight %s", if (isFlashOn) "off" else "on")
+        btnBeep.text = String.format("Turn the beep sound %s", if (isBeepOn) "off" else "on")
+        btnVibrate.text = String.format("Turn the vibration %s", if (isVibrateOn) "off" else "on")
     }
 
     override fun onStart() {
         super.onStart()
 
         disposable = barcodeView
-                .setFacing(CameraSource.CAMERA_FACING_BACK)
-                .setFlash(isFlashOn)
-                .setAutoFocus(true)
-                .setPreviewSize(640, 480)
                 .drawOverlay()
+                .setBeepSound(isBeepOn)
+                .setVibration(if (isVibrateOn) 500 else 0)
+                .setAutoFocus(true)
+                .setFlash(isFlashOn)
+                .setFacing(CameraSource.CAMERA_FACING_BACK)
                 .getObservable()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(

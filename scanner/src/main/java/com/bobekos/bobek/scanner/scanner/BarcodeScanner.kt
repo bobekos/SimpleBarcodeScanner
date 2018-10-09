@@ -59,16 +59,23 @@ internal class BarcodeScanner(
                         camera.getCameraSource()?.release()
                     }
 
-                    updateDisposable = updateSubject.subscribe {
-                        camera.setParametersFromConfig()
-                    }
+                    updateDisposable = updateSubject.subscribe({ camera.setParametersFromConfig() }, {})
                 }
+            }
+        }.doOnNext {
+            if (config.playBeep) {
+                DetectionHelper.playBeepSound()
+            }
+
+            if (config.vibrateDuration > 0) {
+                DetectionHelper.vibrate(context, config.vibrateDuration)
             }
         }.subscribeOn(Schedulers.io())
     }
 
     inner class BarcodeTracker(private val subscriber: ObservableEmitter<Barcode>) : Tracker<Barcode>() {
 
+        @SuppressLint("MissingPermission")
         override fun onNewItem(id: Int, barcode: Barcode?) {
             if (barcode != null) {
                 if (config.drawOverLay) {
@@ -88,7 +95,9 @@ internal class BarcodeScanner(
         }
 
         override fun onMissing(p0: Detector.Detections<Barcode>?) {
-
+            if (config.drawOverLay) {
+                BarcodeView.overlaySubject.onNext(Optional.None)
+            }
         }
 
         override fun onDone() {
