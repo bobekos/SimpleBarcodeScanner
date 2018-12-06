@@ -6,11 +6,14 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Rect
-import android.support.v4.app.ActivityCompat
 import android.util.AttributeSet
 import android.util.DisplayMetrics
-import android.view.*
+import android.view.SurfaceHolder
+import android.view.SurfaceView
+import android.view.View
+import android.view.WindowManager
 import android.widget.FrameLayout
+import androidx.core.app.ActivityCompat
 import com.bobekos.bobek.scanner.overlay.BarcodeOverlay
 import com.bobekos.bobek.scanner.overlay.BarcodeRectOverlay
 import com.bobekos.bobek.scanner.overlay.Optional
@@ -23,7 +26,6 @@ import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 
 
@@ -63,15 +65,15 @@ class BarcodeView : FrameLayout {
         BarcodeScanner(context, cameraView.holder, config)
     }
 
-    constructor(context: Context?) : super(context) {
+    constructor(context: Context) : super(context) {
         init(null)
     }
 
-    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs) {
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
         init(attrs)
     }
 
-    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
         init(attrs)
     }
 
