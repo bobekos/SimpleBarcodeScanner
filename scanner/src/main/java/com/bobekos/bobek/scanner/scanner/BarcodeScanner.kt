@@ -15,6 +15,7 @@ import io.reactivex.ObservableEmitter
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
+import java.util.concurrent.TimeUnit
 
 
 internal class BarcodeScanner(
@@ -46,6 +47,8 @@ internal class BarcodeScanner(
             } else {
                 if (context == null && !emitter.isDisposed) {
                     emitter.onError(NullPointerException("Context is null"))
+                } else if (!barcodeDetector.isOperational) {
+                    emitter.onError(DetectorNotReadyException())
                 } else {
                     camera.init(barcodeDetector).getCameraSource()?.start(holder)
                     camera.setParametersFromConfig()
@@ -70,6 +73,15 @@ internal class BarcodeScanner(
             if (config.vibrateDuration > 0) {
                 DetectionHelper.vibrate(context, config.vibrateDuration)
             }
+        }.retryWhen { exc ->
+            exc.flatMap {
+                if (it is DetectorNotReadyException && !config.isManualOperationalCheck) {
+                    Observable.timer(3, TimeUnit.SECONDS)
+                } else {
+                    Observable.error(it)
+                }
+            }
+
         }.subscribeOn(Schedulers.io())
     }
 

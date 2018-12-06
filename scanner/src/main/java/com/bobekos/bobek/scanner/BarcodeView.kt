@@ -165,6 +165,17 @@ class BarcodeView : FrameLayout {
     fun setVibration(duration: Long = 500) = apply {
         config.vibrateDuration = duration
     }
+
+    /**
+     * If this function is set, the DetectorNotReadyException will
+     * be thrown in onError if isOperational function of the detector return false.
+     * By default the subscription is resubscribed every 3 seconds until the detector is ready.
+     * Use only if you want to handle this exception by yourself.
+     * @see <a href="https://developers.google.com/android/reference/com/google/android/gms/vision/barcode/BarcodeDetector.html#isOperational()">BarcodeDetector.isOperational()</a>
+     */
+    fun setManualIsOperationalCheck() = apply {
+        config.isManualOperationalCheck = true
+    }
     //endregion
 
     //region private
