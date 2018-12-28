@@ -97,4 +97,10 @@ internal class Camera(private val ctx: Context?, private val config: BarcodeScan
         return cameraSource
     }
 
+    fun releaseCameraSource() {
+        try {
+            cameraSource?.release()
+        } catch (ignored: NullPointerException) {
+        }
+    }
 }

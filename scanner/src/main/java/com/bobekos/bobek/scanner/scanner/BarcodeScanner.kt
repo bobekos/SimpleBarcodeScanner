@@ -59,7 +59,7 @@ internal class BarcodeScanner(
 
                     emitter.setCancellable {
                         updateDisposable?.dispose()
-                        camera.getCameraSource()?.release()
+                        camera.releaseCameraSource()
                     }
 
                     updateDisposable = updateSubject.subscribe({ camera.setParametersFromConfig() }, {})
