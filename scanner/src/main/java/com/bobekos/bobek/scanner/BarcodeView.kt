@@ -194,6 +194,10 @@ class BarcodeView : FrameLayout {
                     if (!emitter.isDisposed) {
                         emitter.onNext(false)
                     }
+
+                    barcodeScanner.releaseDetection()
+
+                    holder?.removeCallback(this)
                 }
 
                 override fun surfaceCreated(holder: SurfaceHolder?) {
