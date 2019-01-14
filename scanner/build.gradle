@@ -9,8 +9,8 @@ android {
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 28
-        versionCode 20
-        versionName "1.0.20"
+        versionCode 21
+        versionName "1.0.21"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -39,7 +39,7 @@ dependencies {
     api 'com.google.android.gms:play-services-vision:17.0.2'
 
     api "io.reactivex.rxjava2:rxandroid:2.1.0"
-    api "io.reactivex.rxjava2:rxjava:2.2.3"
+    api "io.reactivex.rxjava2:rxjava:2.2.5"
 }
 repositories {
     mavenCentral()

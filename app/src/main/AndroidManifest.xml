@@ -18,6 +18,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- FOR FRAGMENT TEST -->
+        <activity android:name=".ActivityFragment"/>
     </application>
 
 </manifest>
