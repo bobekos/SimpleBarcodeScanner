@@ -57,12 +57,12 @@ internal class BarcodeScanner(
                     val processor = MultiProcessor.Builder(BarcodeTrackerFactory(tracker)).build()
                     barcodeDetector.setProcessor(processor)
 
-                    emitter.setCancellable {
-                        updateDisposable?.dispose()
-                        camera.getCameraSource()?.release()
-                    }
-
                     updateDisposable = updateSubject.subscribe({ camera.setParametersFromConfig() }, {})
+
+                    emitter.setCancellable {
+                        processor.release()
+                        updateDisposable?.dispose()
+                    }
                 }
             }
         }.doOnNext {
@@ -85,29 +85,34 @@ internal class BarcodeScanner(
         }.subscribeOn(Schedulers.io())
     }
 
+    fun releaseDetection() {
+        camera.releaseCameraSource()
+        barcodeDetector.release()
+    }
+
     inner class BarcodeTracker(private val subscriber: ObservableEmitter<Barcode>) : Tracker<Barcode>() {
 
         @SuppressLint("MissingPermission")
         override fun onNewItem(id: Int, barcode: Barcode?) {
             if (barcode != null) {
-                if (config.drawOverLay) {
-                    BarcodeView.overlaySubject.onNext(Optional.Some(barcode))
-                }
-
                 if (!subscriber.isDisposed) {
+                    if (config.drawOverLay) {
+                        BarcodeView.overlaySubject.onNext(Optional.Some(barcode))
+                    }
+
                     subscriber.onNext(barcode)
                 }
             }
         }
 
         override fun onUpdate(detection: Detector.Detections<Barcode>?, barcode: Barcode?) {
-            if (barcode != null && config.drawOverLay) {
+            if (barcode != null && config.drawOverLay && !subscriber.isDisposed) {
                 BarcodeView.overlaySubject.onNext(Optional.Some(barcode))
             }
         }
 
         override fun onMissing(p0: Detector.Detections<Barcode>?) {
-            if (config.drawOverLay) {
+            if (config.drawOverLay && !subscriber.isDisposed) {
                 BarcodeView.overlaySubject.onNext(Optional.None)
             }
         }
