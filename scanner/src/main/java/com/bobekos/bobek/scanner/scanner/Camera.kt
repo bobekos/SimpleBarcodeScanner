@@ -103,5 +103,5 @@ internal class Camera(private val ctx: Context?, private val config: BarcodeScan
         } catch (ignored: NullPointerException) {
         }
     }
-
+  
 }
