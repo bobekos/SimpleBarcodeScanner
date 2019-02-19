@@ -164,6 +164,21 @@ Vibrate at barcode detection. Default value is 500ms. (Also changeable after the
 
 ### Advanced Options
 
+#### isOperationalCheck
+
+Source Google:
+```
+Indicates whether the detector has all of the required dependencies available locally in order to do detection.
+
+When an app is first installed, it may be necessary to download required files. If this returns false, those files are not yet available. Usually this download is taken care of at application install time, but this is not guaranteed. In some cases the download may have been delayed.
+```
+
+By default this case is handled automatic by this library. If you want to handle this case by yourself, make sure to set this function:
+```
+.setManualIsOperationalCheck()
+```
+If this function is set, the DetectorNotReadyException will be thrown in onError if isOperational function of the detector return false.
+
 #### Custom overlay
 
 There a already two implemented overlay views (BarcodeRectOverlay and BarcodeTextOverlay). 
