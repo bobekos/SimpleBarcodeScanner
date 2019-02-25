@@ -15,6 +15,7 @@ import io.reactivex.ObservableEmitter
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
+import java.util.concurrent.TimeUnit
 
 
 internal class BarcodeScanner(
@@ -46,6 +47,8 @@ internal class BarcodeScanner(
             } else {
                 if (context == null && !emitter.isDisposed) {
                     emitter.onError(NullPointerException("Context is null"))
+                } else if (!barcodeDetector.isOperational) {
+                    emitter.onError(DetectorNotReadyException())
                 } else {
                     camera.init(barcodeDetector).getCameraSource()?.start(holder)
                     camera.setParametersFromConfig()
@@ -54,12 +57,12 @@ internal class BarcodeScanner(
                     val processor = MultiProcessor.Builder(BarcodeTrackerFactory(tracker)).build()
                     barcodeDetector.setProcessor(processor)
 
-                    emitter.setCancellable {
-                        updateDisposable?.dispose()
-                        camera.getCameraSource()?.release()
-                    }
-
                     updateDisposable = updateSubject.subscribe({ camera.setParametersFromConfig() }, {})
+
+                    emitter.setCancellable {
+                        processor.release()
+                        updateDisposable?.dispose()
+                    }
                 }
             }
         }.doOnNext {
@@ -70,7 +73,21 @@ internal class BarcodeScanner(
             if (config.vibrateDuration > 0) {
                 DetectionHelper.vibrate(context, config.vibrateDuration)
             }
+        }.retryWhen { exc ->
+            exc.flatMap {
+                if (it is DetectorNotReadyException && !config.isManualOperationalCheck) {
+                    Observable.timer(3, TimeUnit.SECONDS)
+                } else {
+                    Observable.error(it)
+                }
+            }
+
         }.subscribeOn(Schedulers.io())
+    }
+
+    fun releaseDetection() {
+        camera.releaseCameraSource()
+        barcodeDetector.release()
     }
 
     inner class BarcodeTracker(private val subscriber: ObservableEmitter<Barcode>) : Tracker<Barcode>() {
@@ -78,24 +95,24 @@ internal class BarcodeScanner(
         @SuppressLint("MissingPermission")
         override fun onNewItem(id: Int, barcode: Barcode?) {
             if (barcode != null) {
-                if (config.drawOverLay) {
-                    BarcodeView.overlaySubject.onNext(Optional.Some(barcode))
-                }
-
                 if (!subscriber.isDisposed) {
+                    if (config.drawOverLay) {
+                        BarcodeView.overlaySubject.onNext(Optional.Some(barcode))
+                    }
+
                     subscriber.onNext(barcode)
                 }
             }
         }
 
         override fun onUpdate(detection: Detector.Detections<Barcode>?, barcode: Barcode?) {
-            if (barcode != null && config.drawOverLay) {
+            if (barcode != null && config.drawOverLay && !subscriber.isDisposed) {
                 BarcodeView.overlaySubject.onNext(Optional.Some(barcode))
             }
         }
 
         override fun onMissing(p0: Detector.Detections<Barcode>?) {
-            if (config.drawOverLay) {
+            if (config.drawOverLay && !subscriber.isDisposed) {
                 BarcodeView.overlaySubject.onNext(Optional.None)
             }
         }
