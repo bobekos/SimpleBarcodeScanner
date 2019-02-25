@@ -50,6 +50,7 @@ internal class BarcodeScanner(
                 } else if (!barcodeDetector.isOperational) {
                     emitter.onError(DetectorNotReadyException())
                 } else {
+                    releaseDetection()
                     camera.init(barcodeDetector).getCameraSource()?.start(holder)
                     camera.setParametersFromConfig()
 
