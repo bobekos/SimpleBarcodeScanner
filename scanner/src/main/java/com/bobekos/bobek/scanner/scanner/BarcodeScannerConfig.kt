@@ -13,5 +13,6 @@ internal data class BarcodeScannerConfig(
         var barcodeFormat: Int = Barcode.ALL_FORMATS,
         var playBeep: Boolean = false,
         var vibrateDuration: Long = 0,
-        var isManualOperationalCheck: Boolean = false
+        var isManualOperationalCheck: Boolean = false,
+        var holdCameraOnDispose: Boolean = false
 )
