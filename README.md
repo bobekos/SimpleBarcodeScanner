@@ -231,7 +231,7 @@ The default behavior stops the barcode detection and released the camera when th
 Sometimes you want to hold the camera preview also after dispose. Mostly if you use for example single or maybe which disposed directly.This function guarantees that the camera preview is not released. In all cases the camera will be released when the surface gets destroyed.
 
 ```kotlin
-.holdCameraOnDispose
+.holdCameraOnDispose()
 ```
 
 #### Rx
