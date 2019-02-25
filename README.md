@@ -1,4 +1,4 @@
-# SimpleBarcodeScanner [![Android Arsenal]( https://img.shields.io/badge/Android%20Arsenal-SimpleBarcodeScanner-green.svg?style=flat )]( https://android-arsenal.com/details/1/7004 ) [![](https://img.shields.io/badge/minSdk-15-brightgreen.svg)](https://github.com/bobekos/SimpleBarcodeScanner)
+# SimpleBarcodeScanner [![Android Arsenal]( https://img.shields.io/badge/Android%20Arsenal-SimpleBarcodeScanner-green.svg?style=flat )]( https://android-arsenal.com/details/1/7004 ) [![](https://img.shields.io/badge/minSdk-14-brightgreen.svg)](https://github.com/bobekos/SimpleBarcodeScanner)
 
 Barcode Scanner by Google Mobile Vision Api with RxJava
 
@@ -174,7 +174,7 @@ When an app is first installed, it may be necessary to download required files. 
 ```
 
 By default this case is handled automatic by this library. If you want to handle this case by yourself, make sure to set this function:
-```
+```kotlin
 .setManualIsOperationalCheck()
 ```
 If this function is set, the DetectorNotReadyException will be thrown in onError if isOperational function of the detector return false.
@@ -224,6 +224,15 @@ barcodeView
 ```
 
 If the barcode detection failed or finished the "onUpdate" method passed empty values for the position and barcode value.
+
+#### CameraPreview release
+
+The default behavior stops the barcode detection and released the camera when the subscription is disposed.
+Sometimes you want to hold the camera preview also after dispose. Mostly if you use for example single or maybe which disposed directly.This function guarantees that the camera preview is not released. In all cases the camera will be released when the surface gets destroyed.
+
+```kotlin
+.holdCameraOnDispose
+```
 
 #### Rx
 
