@@ -178,6 +178,15 @@ class BarcodeView : FrameLayout {
     fun setManualIsOperationalCheck() = apply {
         config.isManualOperationalCheck = true
     }
+
+    /**
+     * The default behavior stops the barcode detection and released the camera when the subscription is disposed.
+     * This function guarantees that the camera preview is not released.
+     * In this case, the camera is only released if the surface gets destroyed.
+     */
+    fun holdCameraOnDispose() = apply {
+        config.holdCameraOnDispose = true
+    }
     //endregion
 
     //region private

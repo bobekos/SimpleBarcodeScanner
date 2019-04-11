@@ -62,27 +62,34 @@ internal class BarcodeScanner(
                     emitter.setCancellable {
                         processor.release()
                         updateDisposable?.dispose()
+
+                        if (!config.holdCameraOnDispose) {
+                            releaseDetection()
+                        }
                     }
                 }
             }
-        }.doOnNext {
-            if (config.playBeep) {
-                DetectionHelper.playBeepSound()
-            }
+        }
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .doOnNext {
+                    if (config.playBeep) {
+                        DetectionHelper.playBeepSound()
+                    }
 
-            if (config.vibrateDuration > 0) {
-                DetectionHelper.vibrate(context, config.vibrateDuration)
-            }
-        }.retryWhen { exc ->
-            exc.flatMap {
-                if (it is DetectorNotReadyException && !config.isManualOperationalCheck) {
-                    Observable.timer(3, TimeUnit.SECONDS)
-                } else {
-                    Observable.error(it)
+                    if (config.vibrateDuration > 0) {
+                        DetectionHelper.vibrate(context, config.vibrateDuration)
+                    }
+                }.retryWhen { exc ->
+                    exc.flatMap {
+                        if (it is DetectorNotReadyException && !config.isManualOperationalCheck) {
+                            Observable.timer(3, TimeUnit.SECONDS)
+                        } else {
+                            Observable.error(it)
+                        }
+                    }
+
                 }
-            }
-
-        }.subscribeOn(Schedulers.io())
     }
 
     fun releaseDetection() {
