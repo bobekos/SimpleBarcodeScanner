@@ -49,7 +49,7 @@ internal class BarcodeScanner(
                     emitter.onError(NullPointerException("Context is null"))
                 } else if (!barcodeDetector.isOperational) {
                     emitter.onError(DetectorNotReadyException())
-                } else {
+                } else if (!emitter.isDisposed) {
                     camera.init(barcodeDetector).getCameraSource()?.start(holder)
                     camera.setParametersFromConfig()
 
@@ -57,7 +57,11 @@ internal class BarcodeScanner(
                     val processor = MultiProcessor.Builder(BarcodeTrackerFactory(tracker)).build()
                     barcodeDetector.setProcessor(processor)
 
-                    updateDisposable = updateSubject.subscribe({ camera.setParametersFromConfig() }, {})
+                    updateDisposable = updateSubject.subscribe({
+                        if (!emitter.isDisposed) {
+                            camera.setParametersFromConfig()
+                        }
+                    }, {})
 
                     emitter.setCancellable {
                         processor.release()
