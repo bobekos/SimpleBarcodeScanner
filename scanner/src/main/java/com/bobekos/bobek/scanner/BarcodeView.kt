@@ -22,11 +22,11 @@ import com.bobekos.bobek.scanner.scanner.BarcodeScannerConfig
 import com.bobekos.bobek.scanner.scanner.Camera
 import com.bobekos.bobek.scanner.scanner.Size
 import com.google.android.gms.vision.barcode.Barcode
-import io.reactivex.Observable
-import io.reactivex.ObservableEmitter
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.subjects.PublishSubject
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.ObservableEmitter
+import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.subjects.PublishSubject
 
 
 class BarcodeView : FrameLayout {
