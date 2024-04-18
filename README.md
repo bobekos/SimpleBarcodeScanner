@@ -2,6 +2,8 @@
 
 Barcode Scanner by Google Mobile Vision Api with RxJava
 
+## Please note that this GitHub repository has been archived and is no longer under active development
+
 ## Getting Started
 
 ### Setting up the dependency
